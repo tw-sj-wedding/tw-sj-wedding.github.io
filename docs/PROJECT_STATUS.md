@@ -62,7 +62,6 @@ GitHub Pages 배포를 위해 루트 디렉토리를 기준으로 정돈되었�
 *   **섹션 타이틀**: `tit_gallery.png` / `tit_location.png` / `tit_remittance.png` 이미지 →
     `.sec-head` 텍스트 마크업. 고해상도에서 선명하고 문구 수정이 쉽습니다.
 *   **예식 안내 섹션 신설**: 2027년 1월 달력 + D-day + "우리가 함께한 지" 카운터.
-    (`docs/superpowers/specs/2026-05-06-wedding-timer-design.md` 스펙 구현)
 *   **갤러리**: 매스너리(벽돌) 2열. 각 사진의 원본 비율을 그대로 살리므로
     정방형과 세로로 긴 사진이 섞여도 잘리지 않습니다. 비율은 `<a>` 의 `data-size`
     에서 읽어 타일에 적용하며(`js/aesthetic.js` 의 `applyTileRatios`), 이미지가

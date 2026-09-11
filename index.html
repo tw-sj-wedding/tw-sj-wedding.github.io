@@ -9,14 +9,14 @@
     <meta name="format-detection" content="telephone=no">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=2.0, user-scalable=yes">
     <META NAME="ROBOTS" CONTENT="NOINDEX">
-    <!-- 링크 미리보기(OG) — 주소만 복사해 붙여넣었을 때 카카오·슬랙 등이 읽는 값입니다.
-         og:image 는 반드시 절대 주소여야 합니다. 남의 서버가 읽는 값이라
-         상대 경로로는 어느 사이트인지 알 수 없어 썸네일이 뜨지 않습니다.
-         (공유 버튼으로 보낼 때는 이 태그가 아니라 shareMessage() 의 값이 쓰입니다) -->
-    <meta property="og:url" content="https://twoongg.github.io/mobile-wedding-invitation/" />
+    <!-- ★ 사이트 주소의 유일한 출처입니다. 도메인이 바뀌면 아래 og:url / og:image
+         두 줄만 고치면 됩니다 — 공유 버튼과 링크복사 버튼은 이 값을 읽어 씁니다.
+         이 둘만 절대 주소로 적는 이유: 카카오·슬랙의 수집 서버가 자바스크립트를
+         실행하지 않고 HTML 만 읽어가기 때문에, 상수로 빼면 썸네일이 뜨지 않습니다. -->
+    <meta property="og:url" content="https://tw-sj-wedding.github.io/" />
     <meta property="og:title" content="김태웅 ♡ 박수진 27. 01. 30 토요일 11:00 상록아트홀" />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://twoongg.github.io/mobile-wedding-invitation/upload/images/kakao_share.jpg" />
+    <meta property="og:image" content="https://tw-sj-wedding.github.io/upload/images/kakao_share.jpg" />
     <meta property="og:description" content="저희 두 사람의 결혼식에 초대합니다." />
 
     <title>태웅 수진 결혼식에 초대합니다</title>
@@ -433,7 +433,8 @@
                     <div id="map" style="width:100%; height:450px; border-radius: 8px; border: 1px solid #eee;"></div>
                 </div>
 
-                <!-- 네이버 지도 API 로드 (ncpKeyId는 실제 본인의 키로 교체 필요) -->
+                <!-- 네이버 지도 API. ncpKeyId 는 발급받아 연결된 키이며, 허용 도메인은
+                     NCP 콘솔의 Web 서비스 URL 목록으로 관리합니다. -->
                 <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=3rxk8klag0"></script>
                 <script>
                     $(document).ready(function() {
@@ -1085,12 +1086,11 @@
                     Kakao.init('0c28c6481f41bfafb8d1eaad32dcba29');
                 }
                 
-                // 실제 배포된 사이트 주소
-                var _url = 'https://twoongg.github.io/mobile-wedding-invitation/index.html';
+                // 주소는 <head> 의 og:url / og:image 에서 읽어옵니다 (중복 관리 금지)
+                var _url = $('meta[property="og:url"]').attr('content');
                 var _title = $('meta[property="og:title"]').attr('content') || '모바일 청첩장';
                 var _desc = $('meta[property="og:description"]').attr('content') || '저희 두 사람의 결혼식에 초대합니다.';
-                // 이미지는 카카오 서버에서 접근 가능하도록 절대 경로로 설정
-                var _image = 'https://twoongg.github.io/mobile-wedding-invitation/upload/images/kakao_share.jpg';
+                var _image = $('meta[property="og:image"]').attr('content');
                 var _imgWidth = 800;
                 var _imgHeight = 600;   // kakao_share.jpg 실제 크기 800x600
                 var _eventDateTime = $("#eventDateTime").val() || "";
@@ -1131,7 +1131,7 @@
 
         // 링크 복사 기능을 index.html에 직접 구현 (js/m2page.js의 간섭 방지)
         function copyInvitationLink() {
-            var url = 'https://twoongg.github.io/mobile-wedding-invitation';
+            var url = $('meta[property="og:url"]').attr('content');
             var aux = document.createElement("textarea");
             aux.value = url;
             document.body.appendChild(aux);

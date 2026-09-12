@@ -4,8 +4,11 @@
 // 좌표는 전부 정수 고정소수점(FP=256). x는 스프라이트 좌상단 기준.
 // 월드 y는 "출발점에서 내려온 거리"이고, 화면 y = VIEW.PLAYER_Y + (worldY - progress).
 
-import { mulberry32 } from './rng.js';
-import { FP, TICK_HZ, VIEW, STAGE1, TOTAL_PX, TARGET_Q_CENTER, TARGET_Q_MAX } from '../config.js';
+import { mulberry32, randInt, randRange } from './rng.js';
+import {
+  FP, TICK_HZ, VIEW, STAGE1, OBSTACLES, OBSTACLE_TYPES,
+  TOTAL_PX, SPAWN_STOP_PX, TARGET_Q_CENTER, TARGET_Q_MAX,
+} from '../config.js';
 
 const TOTAL_FP = TOTAL_PX * FP;
 const PLAYER_X_MAX_FP = (VIEW.W - STAGE1.playerW) * FP;
@@ -60,6 +63,58 @@ function moveLaterally(state) {
   state.playerXFp = x;
 }
 
+function makeItem(type, xPx) {
+  const def = OBSTACLES[type];
+  return { type, xFp: xPx * FP, w: def.w, h: def.h, hit: false, used: false };
+}
+
+function spawnRow(state) {
+  const items = [];
+  const rng = state.rng;
+
+  if (randInt(rng, 100) < STAGE1.jumpPadPct) {
+    const w = OBSTACLES.jumppad.w;
+    items.push(makeItem('jumppad', randInt(rng, VIEW.W - w + 1)));
+  } else {
+    const progressPx = (state.progressFp / FP) | 0;
+    const span = STAGE1.twoItemPctEnd - STAGE1.twoItemPctStart;
+    const twoPct = STAGE1.twoItemPctStart + (((span * progressPx) / TOTAL_PX) | 0);
+    const want = randInt(rng, 100) < twoPct ? 2 : 1;
+
+    const firstType = OBSTACLE_TYPES[randInt(rng, OBSTACLE_TYPES.length)];
+    const firstX = randInt(rng, VIEW.W - OBSTACLES[firstType].w + 1);
+    items.push(makeItem(firstType, firstX));
+
+    if (want === 2) {
+      // 같은 줄 최소 간격을 확보할 때까지 정해진 횟수만 재시도한다.
+      // 실패하면 1개만 둔다 — 재시도 횟수가 고정이라 결정론이 유지된다.
+      for (let i = 0; i < STAGE1.sameRowTries; i++) {
+        const type = OBSTACLE_TYPES[randInt(rng, OBSTACLE_TYPES.length)];
+        const x = randInt(rng, VIEW.W - OBSTACLES[type].w + 1);
+        if (Math.abs(x - firstX) >= STAGE1.sameRowMinGap) { items.push(makeItem(type, x)); break; }
+      }
+    }
+  }
+
+  state.rows.push({ worldYFp: state.nextRowYFp, items });
+}
+
+function updateRows(state) {
+  const aheadFp = state.progressFp + STAGE1.spawnAheadPx * FP;
+  const stopFp = SPAWN_STOP_PX * FP;
+  while (state.nextRowYFp < aheadFp && state.nextRowYFp < stopFp) {
+    spawnRow(state);
+    state.nextRowYFp += randRange(state.rng, STAGE1.rowGapMin, STAGE1.rowGapMax) * FP;
+  }
+
+  const cutFp = state.progressFp - STAGE1.despawnBehindPx * FP;
+  let keep = 0;
+  for (let i = 0; i < state.rows.length; i++) {
+    if (state.rows[i].worldYFp >= cutFp) state.rows[keep++] = state.rows[i];
+  }
+  state.rows.length = keep;
+}
+
 // 한 틱. 순서를 바꾸면 리플레이 호환이 깨진다:
 // 카운터 감소 → 목표 x 확정 → 전진 → 횡이동 → (스폰/제거) → (충돌) → 종료 판정
 export function step(state, input) {
@@ -76,6 +131,7 @@ export function step(state, input) {
 
   state.progressFp += advanceFp(state);
   moveLaterally(state);
+  updateRows(state);
 
   if (state.progressFp >= TOTAL_FP) {
     state.progressFp = TOTAL_FP;

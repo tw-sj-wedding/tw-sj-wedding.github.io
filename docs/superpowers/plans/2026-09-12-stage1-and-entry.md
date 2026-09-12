@@ -93,7 +93,7 @@ worker/.dev.vars
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test tests/",
+    "test": "node --test \"tests/**/*.test.mjs\"",
     "build": "node scripts/build-game.mjs"
   },
   "devDependencies": {
@@ -198,6 +198,9 @@ export function randRange(rng, lo, hi) {
 
 Run: `npm install && npm test`
 Expected: PASS — rng 테스트 5개 통과
+
+주의: `node --test tests/` 처럼 디렉터리를 넘기면 Node 24가 그것을 모듈 경로로 해석해
+`MODULE_NOT_FOUND`로 죽는다. 러너는 glob(`tests/**/*.test.mjs`)이나 파일 경로만 받는다.
 
 - [ ] **Step 7: `CLAUDE.md` 작성**
 
@@ -423,7 +426,7 @@ test('결과 객체에 점수가 없다', () => {
 
 - [ ] **Step 3: 테스트가 실패하는지 확인**
 
-Run: `npm test -- tests/stage1-progress.test.mjs`
+Run: `node --test tests/stage1-progress.test.mjs`
 Expected: FAIL — `Cannot find module '../game/src/sim/stage1.js'`
 
 - [ ] **Step 4: `game/src/sim/stage1.js` 최소 구현**
@@ -545,7 +548,7 @@ export function hashState(state) {
 
 - [ ] **Step 5: 테스트 통과 확인**
 
-Run: `npm test -- tests/stage1-progress.test.mjs`
+Run: `node --test tests/stage1-progress.test.mjs`
 Expected: PASS — 7개 통과.
 만약 "목표 플레이 시간 30~40초" 테스트만 실패하면 `config.js`의 `scrollStartPxS`/`scrollMaxPxS`를 조정한다. 다른 파일은 건드리지 않는다.
 
@@ -679,7 +682,7 @@ test('같은 seed는 같은 스폰 배치를 만든다', () => {
 
 - [ ] **Step 2: 테스트가 실패하는지 확인**
 
-Run: `npm test -- tests/stage1-spawn.test.mjs`
+Run: `node --test tests/stage1-spawn.test.mjs`
 Expected: FAIL — "장애물 줄이 너무 적음" (`rows`가 계속 빈 배열)
 
 - [ ] **Step 3: `game/src/sim/stage1.js`에 스폰 구현**
@@ -900,7 +903,7 @@ test('무적 중에는 전진 속도가 느려진다', () => {
 
 - [ ] **Step 2: 테스트가 실패하는지 확인**
 
-Run: `npm test -- tests/stage1-collision.test.mjs`
+Run: `node --test tests/stage1-collision.test.mjs`
 Expected: FAIL — "무적이 안 걸림" (충돌 판정이 아직 없음)
 
 - [ ] **Step 3: `game/src/sim/stage1.js`에 충돌 판정 구현**
@@ -1107,7 +1110,7 @@ export function botInput(state) {
 
 - [ ] **Step 3: 테스트가 실패하는지 확인**
 
-Run: `npm test -- tests/stage1-determinism.test.mjs`
+Run: `node --test tests/stage1-determinism.test.mjs`
 Expected: FAIL — `replay is not a function`
 
 - [ ] **Step 4: finale과 `replay`를 `game/src/sim/stage1.js`에 구현**
@@ -1151,7 +1154,7 @@ export function replay(seed, inputLog) {
 
 - [ ] **Step 5: 테스트 통과 확인**
 
-Run: `npm test -- tests/stage1-determinism.test.mjs`
+Run: `node --test tests/stage1-determinism.test.mjs`
 Expected: PASS — 5개 통과
 
 - [ ] **Step 6: 난이도 분포 테스트 작성 — `tests/stage1-difficulty.test.mjs`**
@@ -1188,7 +1191,7 @@ test('모든 seed가 120초 안에 끝난다 (교착 없음)', () => {
 
 - [ ] **Step 7: 난이도 테스트 실행**
 
-Run: `npm test -- tests/stage1-difficulty.test.mjs`
+Run: `node --test tests/stage1-difficulty.test.mjs`
 Expected: PASS. 클리어율이 80% 미만이면 `config.js`에서 이 순서로 낮춘다 —
 `twoItemPctEnd` ↓ → `rowGapMin`/`rowGapMax` ↑ → `scrollMaxPxS` ↓.
 **`config.js` 외의 파일은 고치지 않는다.** 조정했으면 최종 클리어율을 `docs/DECISIONS.md`에 한 줄 남긴다.
@@ -1552,7 +1555,7 @@ test('cssWidth가 0이어도 터지지 않는다', () => {
 
 - [ ] **Step 2: 테스트가 실패하는지 확인**
 
-Run: `npm test -- tests/input-math.test.mjs`
+Run: `node --test tests/input-math.test.mjs`
 Expected: FAIL — `Cannot find module '../game/src/input.js'`
 
 - [ ] **Step 3: `game/src/input.js` 구현**
@@ -2191,7 +2194,7 @@ test('번들이 같으면 해시도 같다 (재현 가능)', async () => {
 
 - [ ] **Step 2: 테스트가 실패하는지 확인**
 
-Run: `npm test -- tests/build.test.mjs`
+Run: `node --test tests/build.test.mjs`
 Expected: FAIL — `Cannot find module '../scripts/build-game.mjs'`
 
 - [ ] **Step 3: `scripts/build-game.mjs` 구현**
@@ -2336,7 +2339,7 @@ test('청첩장 본문에 점수·랭킹 문구가 없다', () => {
 
 - [ ] **Step 2: 테스트가 실패하는지 확인**
 
-Run: `npm test -- tests/invitation.test.mjs`
+Run: `node --test tests/invitation.test.mjs`
 Expected: FAIL — "./game/ 링크가 0개"
 
 - [ ] **Step 3: `index.html`의 `</header>` 직후에 진입 카드 추가**

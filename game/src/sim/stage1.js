@@ -115,6 +115,44 @@ function updateRows(state) {
   state.rows.length = keep;
 }
 
+// 신랑과 장애물의 AABB 겹침 판정. 월드 좌표에서 본다.
+// 신랑의 월드 y 범위는 [progress, progress + playerH].
+function resolveCollisions(state) {
+  const pTop = state.progressFp;
+  const pBot = pTop + STAGE1.playerH * FP;
+  const pL = state.playerXFp;
+  const pR = pL + STAGE1.playerW * FP;
+
+  for (let i = 0; i < state.rows.length; i++) {
+    const row = state.rows[i];
+    const oTop = row.worldYFp;
+    for (let j = 0; j < row.items.length; j++) {
+      const it = row.items[j];
+      const oBot = oTop + it.h * FP;
+      if (pBot <= oTop || pTop >= oBot) continue;
+      const oL = it.xFp;
+      const oR = oL + it.w * FP;
+      if (pR <= oL || pL >= oR) continue;
+
+      if (it.type === 'jumppad') {
+        if (!it.used) {
+          it.used = true;
+          state.airborneTicks = STAGE1.jumpTicks;
+        }
+      } else if (state.airborneTicks === 0 && state.invincibleTicks === 0 && !it.hit) {
+        it.hit = true;
+        state.lives--;
+        state.invincibleTicks = STAGE1.hitInvincibleTicks;
+        if (state.lives <= 0) {
+          state.lives = 0;
+          state.outcome = 'failed';
+          return;
+        }
+      }
+    }
+  }
+}
+
 // 한 틱. 순서를 바꾸면 리플레이 호환이 깨진다:
 // 카운터 감소 → 목표 x 확정 → 전진 → 횡이동 → (스폰/제거) → (충돌) → 종료 판정
 export function step(state, input) {
@@ -132,6 +170,8 @@ export function step(state, input) {
   state.progressFp += advanceFp(state);
   moveLaterally(state);
   updateRows(state);
+  resolveCollisions(state);
+  if (state.outcome !== null) return;
 
   if (state.progressFp >= TOTAL_FP) {
     state.progressFp = TOTAL_FP;

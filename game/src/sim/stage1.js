@@ -162,10 +162,18 @@ export function step(state, input) {
   if (state.invincibleTicks > 0) state.invincibleTicks--;
   if (state.airborneTicks > 0) state.airborneTicks--;
 
-  let q = input.targetXQ | 0;
-  if (q < 0) q = 0;
-  else if (q > TARGET_Q_MAX) q = TARGET_Q_MAX;
-  state.targetXQ = q;
+  // 도착 80m 전부터는 입력을 받지 않고 신랑을 중앙으로 정렬한다 (도착 연출)
+  const progressPx = (state.progressFp / FP) | 0;
+  if (progressPx >= SPAWN_STOP_PX) state.finale = true;
+
+  if (state.finale) {
+    state.targetXQ = TARGET_Q_CENTER;
+  } else {
+    let q = input.targetXQ | 0;
+    if (q < 0) q = 0;
+    else if (q > TARGET_Q_MAX) q = TARGET_Q_MAX;
+    state.targetXQ = q;
+  }
 
   state.progressFp += advanceFp(state);
   moveLaterally(state);
@@ -203,4 +211,20 @@ export function hashState(state) {
     }
   }
   return h >>> 0;
+}
+
+// inputLog는 값이 바뀐 틱만 담은 [tick, targetXQ] 배열이다.
+export function replay(seed, inputLog) {
+  const state = createSim(seed);
+  let cursor = 0;
+  let q = TARGET_Q_CENTER;
+  const guard = TICK_HZ * 180;   // 무한 루프 방지
+  while (!isOver(state) && state.tick < guard) {
+    while (cursor < inputLog.length && inputLog[cursor][0] <= state.tick) {
+      q = inputLog[cursor][1];
+      cursor++;
+    }
+    step(state, { targetXQ: q });
+  }
+  return state;
 }

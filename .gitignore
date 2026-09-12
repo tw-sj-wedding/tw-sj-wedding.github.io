@@ -1,2 +1,7 @@
 .DS_Store
 _preview.html
+node_modules/
+.env
+.env.*
+.wrangler/
+worker/.dev.vars

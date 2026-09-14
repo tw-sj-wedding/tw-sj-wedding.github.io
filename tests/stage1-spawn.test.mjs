@@ -8,6 +8,7 @@ const hold = { targetXQ: TARGET_Q_CENTER };
 // 스폰된 모든 줄을 종료까지 모아본다 (제거되기 전에 기록)
 function collectRows(seed) {
   const s = createSim(seed);
+  s.lives = 99;   // 스폰 배치를 끝까지 관찰하려면 중간에 죽으면 안 된다
   const seen = new Map();
   let t = 0;
   while (!isOver(s) && t < 60 * 120) {
@@ -80,6 +81,7 @@ test('통과 가능한 빈틈이 항상 신랑 폭보다 넓다', () => {
 
 test('지나간 줄은 제거된다 (rows가 무한히 자라지 않음)', () => {
   const s = createSim(1);
+  s.lives = 99;
   let max = 0;
   let t = 0;
   while (!isOver(s) && t < 60 * 120) { step(s, hold); max = Math.max(max, s.rows.length); t++; }

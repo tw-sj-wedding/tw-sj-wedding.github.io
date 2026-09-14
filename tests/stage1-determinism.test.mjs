@@ -56,6 +56,7 @@ test('스폰 중지 구간을 20px 지난 뒤로는 목숨이 줄지 않는다',
   // 이어지므로, 스폰 중지 지점 직후 몇 px 동안은 아직 그 줄과 겹칠 수 있다.
   // 장애물 높이 최대 13px보다 넉넉한 20px를 지난 뒤부터 검사한다.
   const s = createSim(3);
+  s.lives = 99;   // 도착 구간까지 살아서 가야 관찰할 수 있다
   let t = 0;
   while (!isOver(s) && s.progressFp / FP < SPAWN_STOP_PX + 20 && t < 60 * 120) {
     step(s, botInput(s)); t++;

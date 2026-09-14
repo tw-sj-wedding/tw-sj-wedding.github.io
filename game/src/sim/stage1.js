@@ -63,18 +63,31 @@ function moveLaterally(state) {
   state.playerXFp = x;
 }
 
-function makeItem(type, xPx) {
+function makeItem(type, xPx, vxFp = 0) {
   const def = OBSTACLES[type];
-  return { type, xFp: xPx * FP, w: def.w, h: def.h, hit: false, used: false };
+  return { type, xFp: xPx * FP, w: def.w, h: def.h, vxFp, hit: false, used: false };
+}
+
+// 스키어는 화면을 가로지르는 동적 장애물이다. 정적 장애물처럼 자리를 외워 피할 수
+// 없어서 긴장의 대부분을 만든다. 속도·방향은 시뮬 RNG로만 정해 결정론을 지킨다.
+function makeSkier(rng) {
+  const def = OBSTACLES.skier;
+  const speedPxS = randRange(rng, STAGE1.skierMinPxS, STAGE1.skierMaxPxS);
+  const vxFp = ((speedPxS * FP) / TICK_HZ) | 0;
+  const dir = randInt(rng, 2) === 0 ? -1 : 1;
+  return makeItem('skier', randInt(rng, VIEW.W - def.w + 1), vxFp * dir);
 }
 
 function spawnRow(state) {
   const items = [];
   const rng = state.rng;
 
-  if (randInt(rng, 100) < STAGE1.jumpPadPct) {
+  const roll = randInt(rng, 100);
+  if (roll < STAGE1.jumpPadPct) {
     const w = OBSTACLES.jumppad.w;
     items.push(makeItem('jumppad', randInt(rng, VIEW.W - w + 1)));
+  } else if (roll < STAGE1.jumpPadPct + STAGE1.skierPct) {
+    items.push(makeSkier(rng));
   } else {
     const progressPx = (state.progressFp / FP) | 0;
     const span = STAGE1.twoItemPctEnd - STAGE1.twoItemPctStart;
@@ -97,6 +110,28 @@ function spawnRow(state) {
   }
 
   state.rows.push({ worldYFp: state.nextRowYFp, items });
+}
+
+// 스키어를 움직인다. 화면 밖으로 나가면 다시 못 돌아와 위협이 사라지므로
+// 양쪽 벽에서 되돌린다 — 슬로프를 가로질러 왕복하는 것처럼 읽힌다.
+function moveDynamic(state) {
+  const maxXFp = (VIEW.W - OBSTACLES.skier.w) * FP;
+  for (let i = 0; i < state.rows.length; i++) {
+    const items = state.rows[i].items;
+    for (let j = 0; j < items.length; j++) {
+      const it = items[j];
+      // 0 뿐 아니라 undefined/NaN 도 걸러야 한다. vxFp가 없는 항목을 더하면 xFp가 NaN이
+      // 되고, NaN 비교는 전부 false라 AABB 검사의 continue가 안 걸려 그 장애물이
+      // 화면 전체와 충돌하게 된다.
+      if (!it.vxFp) continue;
+      let x = it.xFp + it.vxFp;
+      if (x < 0) { x = -x; it.vxFp = -it.vxFp; }
+      else if (x > maxXFp) { x = maxXFp - (x - maxXFp); it.vxFp = -it.vxFp; }
+      if (x < 0) x = 0;
+      else if (x > maxXFp) x = maxXFp;
+      it.xFp = x;
+    }
+  }
 }
 
 function updateRows(state) {
@@ -178,6 +213,7 @@ export function step(state, input) {
   state.progressFp += advanceFp(state);
   moveLaterally(state);
   updateRows(state);
+  moveDynamic(state);
   resolveCollisions(state);
   if (state.outcome !== null) return;
 
@@ -204,6 +240,7 @@ export function hashState(state) {
     for (let j = 0; j < r.items.length; j++) {
       const it = r.items[j];
       mix(it.xFp);
+      mix(it.vxFp);
       mix(it.w);
       mix(it.h);
       mix(it.hit ? 1 : 0);

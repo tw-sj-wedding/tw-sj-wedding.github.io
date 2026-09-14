@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createSim, step, isOver, getOutcome } from '../game/src/sim/stage1.js';
-import { TOTAL_PX, FP, TARGET_Q_CENTER } from '../game/src/config.js';
+import { TOTAL_PX, FP, STAGE1, TARGET_Q_CENTER } from '../game/src/config.js';
 
 const hold = { targetXQ: TARGET_Q_CENTER };
 
@@ -46,7 +46,7 @@ test('스크롤 속도는 거리에 따라 증가하고 상한을 넘지 않는�
   step(s, hold);
   const late = s.progressFp - before;
   assert.ok(late > early, '후반 속도가 초반보다 빠르지 않음');
-  assert.ok(late <= (118 * FP) / 60 + 1, '속도 상한 118px/s 초과');
+  assert.ok(late <= (STAGE1.scrollMaxPxS * FP) / 60 + 1, `속도 상한 ${STAGE1.scrollMaxPxS}px/s 초과`);
 });
 
 test('장애물이 없으면 800m에서 cleared로 끝난다', () => {
@@ -55,10 +55,12 @@ test('장애물이 없으면 800m에서 cleared로 끝난다', () => {
   assert.ok(s.progressFp >= TOTAL_PX * FP, '목표 거리 미달인데 클리어');
 });
 
-test('장애물 없는 완주 시간이 목표치 30~40초 안에 있다', () => {
+test('장애물 없는 완주 시간이 20~40초 안에 있다', () => {
+  // 상한은 하객이 지루해지지 않을 길이, 하한은 연출이 눈에 담길 최소 길이다.
+  // 2026-09-14 속도 상향으로 기존 목표 30~40초에서 하한을 내렸다.
   const s = runToEnd(1);
   const seconds = s.tick / 60;
-  assert.ok(seconds >= 30 && seconds <= 40, `플레이 시간 ${seconds.toFixed(1)}초`);
+  assert.ok(seconds >= 20 && seconds <= 40, `플레이 시간 ${seconds.toFixed(1)}초`);
 });
 
 test('끝난 뒤에는 step을 더 불러도 상태가 변하지 않는다', () => {

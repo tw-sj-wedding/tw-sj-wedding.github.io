@@ -16,16 +16,17 @@ export const STAGE1 = {
   goalM: 800,
   pxPerM: 4,
 
-  scrollStartPxS: 62,
-  scrollMaxPxS: 118,
+  scrollStartPxS: 78,
+  scrollMaxPxS: 138,
 
-  lives: 3,
+  lives: 1,
   hitInvincibleTicks: 78,   // 1.3초
   hitSlowNum: 55,           // 무적 중 속도 x0.55
   hitSlowDen: 100,
   jumpTicks: 48,            // 점프 체공 0.8초
 
-  latMaxPxS: 130,           // 횡이동 최대 속도
+  latMaxPxS: 165,           // 횡이동 최대 속도. 스크롤이 빨라지면 피할 시간이 줄어
+                            // 이 값이 병목이 된다 — 스크롤 속도와 같이 움직여야 한다
   playerW: 14,
   playerH: 17,
 
@@ -36,6 +37,9 @@ export const STAGE1 = {
   twoItemPctStart: 15,      // 한 줄에 2개일 확률 (시작)
   twoItemPctEnd: 55,        // 한 줄에 2개일 확률 (끝)
   jumpPadPct: 20,           // 줄당 점프대 확률
+  skierPct: 18,             // 줄당 스키어 확률 (점프대 다음으로 굴림)
+  skierMinPxS: 30,          // 스키어 횡속도 하한
+  skierMaxPxS: 70,          // 스키어 횡속도 상한
 
   spawnStopBeforeM: 80,     // 도착 80m 전부터 스폰 중지
   spawnAheadPx: 240,        // 화면 아래로 이만큼 앞서 생성
@@ -46,6 +50,7 @@ export const OBSTACLES = {
   tree:    { w: 12, h: 13 },
   rock:    { w: 10, h: 6 },
   snowman: { w: 10, h: 13 },
+  skier:   { w: 12, h: 14 },
   jumppad: { w: 16, h: 4 },
 };
 

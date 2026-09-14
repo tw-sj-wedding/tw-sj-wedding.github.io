@@ -6,6 +6,7 @@
 // 프로덕션은 해시 파일명이 막아주지만 개발 중에는 이 서버를 쓴다.
 
 import { createServer } from 'node:http';
+import { networkInterfaces } from 'node:os';
 import { createReadStream } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -69,10 +70,26 @@ export function createDevServer() {
   });
 }
 
+// 폰 실기기 확인용 LAN 주소. 조작이 터치 드래그 하나뿐이라 실기기 확인 빈도가 높다.
+export function lanAddresses() {
+  const out = [];
+  for (const list of Object.values(networkInterfaces())) {
+    for (const net of list ?? []) {
+      if (net.family === 'IPv4' && !net.internal) out.push(net.address);
+    }
+  }
+  return out;
+}
+
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const port = Number(process.env.PORT) || 8123;
   createDevServer().listen(port, () => {
-    console.log(`개발 서버: http://localhost:${port}/game/dev.html  (캐시 없음)`);
-    console.log(`청첩장:    http://localhost:${port}/`);
+    console.log(`\n  개발 서버 (캐시 없음)\n`);
+    console.log(`  이 컴퓨터   게임    http://localhost:${port}/game/dev.html`);
+    console.log(`              청첩장  http://localhost:${port}/`);
+    for (const ip of lanAddresses()) {
+      console.log(`  폰·태블릿   게임    http://${ip}:${port}/game/dev.html   (같은 Wi-Fi)`);
+    }
+    console.log('');
   });
 }

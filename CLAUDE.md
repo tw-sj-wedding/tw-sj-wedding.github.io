@@ -36,8 +36,12 @@
 
 ## 개발과 배포
 
-- 개발: `python3 -m http.server 8000` 후 `http://localhost:8000/game/dev.html`
+- 개발: `npm run dev` 후 `http://localhost:8123/game/dev.html`
   (모듈을 직접 로드하므로 빌드 불필요)
+  - **`python3 -m http.server` 를 쓰지 않는다.** 캐시 헤더를 보내지 않아 Chrome이
+    ES 모듈의 옛 사본을 재사용한다. 모듈 일부만 옛 것이면 이벤트 핸들러가 붙지 않아
+    버튼이 죽는데 콘솔에는 아무 에러도 안 남아서, 없는 버그를 쫓게 된다.
+    `scripts/dev-server.mjs` 는 모든 응답에 `Cache-Control: no-store` 를 붙인다.
 - 테스트 전체: `npm test`
   - 한 파일만: `node --test tests/stage1-spawn.test.mjs`
   - `node --test tests/` 처럼 디렉터리를 넘기면 Node 24가 이를 모듈 경로로 해석해

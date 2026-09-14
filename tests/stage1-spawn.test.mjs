@@ -24,10 +24,24 @@ test('줄이 생성된다', () => {
 });
 
 test('줄 간격은 44~72px이다', () => {
-  const rows = collectRows(7);
-  for (let i = 1; i < rows.length; i++) {
-    const gapPx = (rows[i].worldYFp - rows[i - 1].worldYFp) / FP;
-    assert.ok(gapPx >= STAGE1.rowGapMin && gapPx <= STAGE1.rowGapMax, `줄 간격 ${gapPx}px`);
+  // 간격의 실체는 스폰 커서(nextRowYFp)다. 줄의 현재 위치로 재면 안 된다 —
+  // 스키어 줄은 스폰 뒤에도 내려가고, 그 줄을 빼고 재면 그 자리만큼 벌어져 보인다.
+  const s = createSim(7);
+  s.lives = 99;
+  const cursors = [];
+  let t = 0;
+  while (!isOver(s) && t < 60 * 120) {
+    if (cursors[cursors.length - 1] !== s.nextRowYFp) cursors.push(s.nextRowYFp);
+    step(s, hold);
+    t++;
+  }
+  assert.ok(cursors.length > 20, `스폰이 ${cursors.length}번뿐`);
+  for (let i = 1; i < cursors.length; i++) {
+    const gapPx = (cursors[i] - cursors[i - 1]) / FP;
+    assert.ok(
+      gapPx >= STAGE1.rowGapMin && gapPx <= STAGE1.rowGapMax,
+      `줄 간격 ${gapPx}px (허용 ${STAGE1.rowGapMin}~${STAGE1.rowGapMax})`,
+    );
   }
 });
 
@@ -62,8 +76,23 @@ test('점프대가 있는 줄에는 다른 장애물이 없다', () => {
 });
 
 test('도착 80m 전부터는 새 줄이 생기지 않는다', () => {
-  for (const r of collectRows(2)) {
-    assert.ok(r.worldYFp / FP < SPAWN_STOP_PX, `스폰 중지 구간에 줄이 생김: ${r.worldYFp / FP}px`);
+  // 위치가 아니라 "새로 추가되는가"를 본다. 스키어 줄은 스폰 뒤에도 내려가므로
+  // 위치로 판정하면 중지선을 넘어간 것처럼 보인다.
+  const s = createSim(2);
+  s.lives = 99;
+  const known = new Set();
+  let t = 0;
+  while (!isOver(s) && t < 60 * 120) {
+    for (const r of s.rows) {
+      if (known.has(r)) continue;
+      known.add(r);
+      assert.ok(
+        s.progressFp / FP < SPAWN_STOP_PX,
+        `스폰 중지 구간(${SPAWN_STOP_PX}px)을 지난 ${(s.progressFp / FP).toFixed(0)}px 에서 새 줄이 생김`,
+      );
+    }
+    step(s, hold);
+    t++;
   }
 });
 

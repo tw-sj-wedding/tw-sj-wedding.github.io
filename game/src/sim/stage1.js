@@ -40,12 +40,19 @@ export function getOutcome(state) {
   return state.outcome;
 }
 
-// 틱당 진행량(FP). 거리에 비례해 선형 증가, 무적 중에는 감속.
-function advanceFp(state) {
+// 거리에 따른 신랑의 기본 전진 속도(px/s). 피격 감속은 포함하지 않는다.
+// 스키어 하강 속도의 기준이라 export 한다 — 감속은 일시적인 벌점이고,
+// "스키어는 항상 추월당한다"는 보장은 그 벌점과 무관해야 한다.
+export function baseScrollPxS(state) {
   const progressPx = (state.progressFp / FP) | 0;
   const t = progressPx > TOTAL_PX ? TOTAL_PX : progressPx;
   const span = STAGE1.scrollMaxPxS - STAGE1.scrollStartPxS;
-  let vPxS = STAGE1.scrollStartPxS + (((span * t) / TOTAL_PX) | 0);
+  return STAGE1.scrollStartPxS + (((span * t) / TOTAL_PX) | 0);
+}
+
+// 틱당 진행량(FP). 무적 중에는 감속한다.
+function advanceFp(state) {
+  let vPxS = baseScrollPxS(state);
   if (state.invincibleTicks > 0) {
     vPxS = ((vPxS * STAGE1.hitSlowNum) / STAGE1.hitSlowDen) | 0;
   }
@@ -81,6 +88,7 @@ function makeSkier(rng) {
 function spawnRow(state) {
   const items = [];
   const rng = state.rng;
+  let vyFp = 0;
 
   const roll = randInt(rng, 100);
   if (roll < STAGE1.jumpPadPct) {
@@ -88,6 +96,11 @@ function spawnRow(state) {
     items.push(makeItem('jumppad', randInt(rng, VIEW.W - w + 1)));
   } else if (roll < STAGE1.jumpPadPct + STAGE1.skierPct) {
     items.push(makeSkier(rng));
+    // 하강 속도는 스폰 시점 신랑 속도의 일정 비율로 고정한다. 신랑 속도는 거리에 따라
+    // 증가만 하므로, 이렇게 잡으면 언제 스폰되든 반드시 추월당한다.
+    const pct = randRange(rng, STAGE1.skierDescentMinPct, STAGE1.skierDescentMaxPct);
+    vyFp = (((baseScrollPxS(state) * pct) / 100) * FP / TICK_HZ) | 0;
+    if (vyFp < 1) vyFp = 1;
   } else {
     const progressPx = (state.progressFp / FP) | 0;
     const span = STAGE1.twoItemPctEnd - STAGE1.twoItemPctStart;
@@ -109,7 +122,7 @@ function spawnRow(state) {
     }
   }
 
-  state.rows.push({ worldYFp: state.nextRowYFp, items });
+  state.rows.push({ worldYFp: state.nextRowYFp, vyFp, items });
 }
 
 // 스키어를 움직인다. 화면 밖으로 나가면 다시 못 돌아와 위협이 사라지므로
@@ -117,7 +130,11 @@ function spawnRow(state) {
 function moveDynamic(state) {
   const maxXFp = (VIEW.W - OBSTACLES.skier.w) * FP;
   for (let i = 0; i < state.rows.length; i++) {
-    const items = state.rows[i].items;
+    const row = state.rows[i];
+    // 스키어는 줄 자체를 내려보낸다. 항목만 내리면 줄은 제자리에 남아, 스키어가 아직
+    // 화면에 있는데 줄이 먼저 제거되거나 엉뚱한 위치에서 충돌 판정이 난다.
+    if (row.vyFp) row.worldYFp += row.vyFp;
+    const items = row.items;
     for (let j = 0; j < items.length; j++) {
       const it = items[j];
       // 0 뿐 아니라 undefined/NaN 도 걸러야 한다. vxFp가 없는 항목을 더하면 xFp가 NaN이
@@ -153,6 +170,11 @@ function updateRows(state) {
 // 신랑과 장애물의 AABB 겹침 판정. 월드 좌표에서 본다.
 // 신랑의 월드 y 범위는 [progress, progress + playerH].
 function resolveCollisions(state) {
+  // 도착 연출 구간에서는 충돌 자체를 보지 않는다. 이 구간의 신랑은 입력을 받지 않고
+  // 중앙으로 자동 정렬되므로 피할 방법이 없는데, 하강하는 스키어는 스폰 중지선을
+  // 넘어 따라 내려올 수 있다. 신부 앞에서 죽는 일은 없어야 한다.
+  if (state.finale) return;
+
   const pTop = state.progressFp;
   const pBot = pTop + STAGE1.playerH * FP;
   const pL = state.playerXFp;
@@ -237,6 +259,7 @@ export function hashState(state) {
   for (let i = 0; i < state.rows.length; i++) {
     const r = state.rows[i];
     mix(r.worldYFp);
+    mix(r.vyFp | 0);
     for (let j = 0; j < r.items.length; j++) {
       const it = r.items[j];
       mix(it.xFp);

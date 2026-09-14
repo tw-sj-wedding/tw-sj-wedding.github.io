@@ -13,7 +13,7 @@ export const VIEW = {
 };
 
 export const STAGE1 = {
-  goalM: 800,
+  goalM: 640,
   pxPerM: 4,
 
   scrollStartPxS: 78,
@@ -37,9 +37,11 @@ export const STAGE1 = {
   twoItemPctStart: 15,      // 한 줄에 2개일 확률 (시작)
   twoItemPctEnd: 55,        // 한 줄에 2개일 확률 (끝)
   jumpPadPct: 20,           // 줄당 점프대 확률
-  skierPct: 18,             // 줄당 스키어 확률 (점프대 다음으로 굴림)
-  skierMinPxS: 30,          // 스키어 횡속도 하한
-  skierMaxPxS: 70,          // 스키어 횡속도 상한
+  skierPct: 10,             // 줄당 스키어 확률 (점프대 다음으로 굴림)
+  skierMinPxS: 22,          // 스키어 횡속도 하한
+  skierMaxPxS: 45,          // 스키어 횡속도 상한
+  skierDescentMinPct: 20,   // 스키어 하강 속도 = 스폰 시점 신랑 속도의 이 비율
+  skierDescentMaxPct: 35,   // 절대값으로 박으면 후반에 신랑을 앞질러 추월이 깨진다
 
   spawnStopBeforeM: 80,     // 도착 80m 전부터 스폰 중지
   spawnAheadPx: 240,        // 화면 아래로 이만큼 앞서 생성

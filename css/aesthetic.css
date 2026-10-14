@@ -975,73 +975,58 @@ div.toast p {
 }
 
 /* ============================================================
-   10. 미니게임 진입 카드 (게임 본체는 /game)
+   10. 미니게임 진입 버튼 (게임 본체는 /game) — 갤러리 다음, 오시는 길 앞
    ============================================================ */
 .minigame {
-    padding: 34px var(--gut) 0;
+    padding: 0 var(--gut) var(--sec-pad);
+    background: var(--paper);          /* 갤러리와 같은 면에 이어 붙는다 */
 }
-.minigame__card {
-    display: block;
-    padding: 22px 22px 24px;
+/* '사진 더보기'(테두리만)와 헷갈리지 않게 눈빛 바탕을 채운 알약 */
+.minigame__btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 320px;
+    margin: 0 auto;
+    padding: 15px 22px 15px 20px;
     border: 1px solid var(--line);
-    border-radius: 18px;
-    background: linear-gradient(180deg, #eef4f9 0%, var(--paper-warm) 62%);
-    text-align: center;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #eaf1f7 0%, var(--paper-warm) 100%);
+    color: var(--ink-body);
     text-decoration: none;
     transition: transform .35s var(--ease), box-shadow .35s var(--ease);
 }
-.minigame__card:active {
+.minigame__btn:active {
     transform: scale(.985);
-    box-shadow: 0 4px 18px rgba(60, 40, 32, .10);
+    box-shadow: 0 4px 14px rgba(60, 40, 32, .08);
 }
-.minigame__chars {
-    display: flex;
-    justify-content: center;
-    gap: 6px;
-    margin-bottom: 10px;
+.minigame__icon {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    /* 게임패드 (지도·전화 버튼 아이콘과 같은 선 굵기·색) */
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c2836f' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2' y='6' width='20' height='12' rx='6'/%3E%3Cpath d='M7 12h4M9 10v4'/%3E%3Cpath d='M15.5 11h.01M17.5 13h.01' stroke-width='2.4'/%3E%3C/svg%3E") no-repeat center / contain;
 }
-/* 게임 스프라이트 시트(384x128, 64칸)의 달리기 첫 프레임을 2배로 */
-.minigame__char {
-    width: 64px;
-    height: 64px;
-    background: url(../game/assets/sprites.png) no-repeat;
-    background-size: 384px 128px;
-    image-rendering: pixelated;
+.minigame__text {
+    flex: 1;
+    text-align: center;
+    font-family: var(--font-kr);
+    font-size: 14px;
+    letter-spacing: .06em;
 }
-.minigame__char--groom { background-position: 0 0; }
-.minigame__char--bride { background-position: 0 -64px; }
-.minigame__label {
-    display: block;
+.minigame__name {
+    margin-left: 3px;
     font-family: var(--font-en);
-    font-size: 11px;
-    letter-spacing: .28em;
-    color: var(--ink-faint);
-    margin-bottom: 7px;
-}
-.minigame__title {
-    display: block;
-    font-family: var(--font-ui);
-    font-weight: 700;
-    font-size: 19px;
-    letter-spacing: .16em;
+    font-weight: 600;
+    letter-spacing: .14em;
     color: var(--ink);
 }
-.minigame__desc {
-    display: block;
-    margin-top: 10px;
-    font-family: var(--font-kr);
-    font-size: 13px;
-    line-height: 1.75;
-    color: var(--ink-soft);
-}
-.minigame__go {
-    display: inline-block;
-    margin-top: 16px;
-    padding: 9px 24px;
-    border-radius: 999px;
-    background: var(--accent);
-    color: #fff;
-    font-family: var(--font-ui);
-    font-size: 13px;
-    letter-spacing: .06em;
+.minigame__arrow {
+    flex: none;
+    width: 7px;
+    height: 7px;
+    margin-right: 3px;
+    border-top: 1.5px solid var(--accent);
+    border-right: 1.5px solid var(--accent);
+    transform: rotate(45deg);
 }

@@ -225,7 +225,7 @@ scripts/build-sprites.mjs     그림 변환                               신규
 scripts/build-game.mjs        esbuild → 해시 번들 → index.html 생성    신규
 worker/                       Cloudflare Worker + D1 마이그레이션      신규 (2부)
 tests/                        node --test                            1차 시뮬 테스트 폐기, 새로 작성
-index.html / css/aesthetic.css 청첩장 최상단 진입 카드 블록만 추가      신규 블록
+index.html / css/aesthetic.css 청첩장 진입 버튼 블록만 (갤러리 다음·오시는 길 앞, DECISIONS #54)
 ```
 
 **시뮬 인터페이스 (`runner.js`)**

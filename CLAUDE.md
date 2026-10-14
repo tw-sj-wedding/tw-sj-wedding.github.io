@@ -77,3 +77,5 @@
   로컬 개발은 위의 `dev:api` 로 한다.
 - 점수 공식(`SPEED`·`SCORE`·`TICK_HZ`)을 바꾸면 `GAME_VERSION` 을 올리고 Worker 의
   `CLIENT_VERSIONS` 에 추가해 다시 배포한다. 공식은 `game/src/shared/scoring.js` 를 서버와 공유한다.
+- 신랑·신부는 Worker 시크릿 `VIP_NICKNAMES` 의 비밀 닉네임으로 등록하면 예약 이름(김태웅·박수진)으로 저장된다.
+  비밀 닉네임 값은 저장소·테스트·문서 어디에도 적지 않는다.

@@ -15,7 +15,7 @@ function setup() {
   let now = T0;
   const clock = { advance: (ms) => { now += ms; }, now: () => now };
   const env = {
-    DB: db, HMAC_SECRET: 'test-secret', ALLOWED_ORIGINS: `${ORIGIN},http://localhost:8123`, CLIENT_VERSIONS: GAME_VERSION,
+    DB: db, HMAC_SECRET: 'test-secret-0123456789', ALLOWED_ORIGINS: `${ORIGIN},http://localhost:8123`, CLIENT_VERSIONS: GAME_VERSION,
   };
   const handler = createHandler({ now: clock.now });
   async function call(method, path, body, headers = {}) {
@@ -203,4 +203,16 @@ test('허용되지 않은 클라이언트 버전은 old_client', async () => {
 test('없는 경로는 404', async () => {
   const { call } = setup();
   assert.equal((await call('GET', '/api/nope')).status, 404);
+});
+
+test('서명 키가 설정되지 않았으면 토큰을 발급하지 않는다 (fail closed)', async () => {
+  // `wrangler secret put HMAC_SECRET` 을 빼먹고 배포하면 "undefined" 로 서명돼 누구나 위조할 수 있다
+  for (const secret of [undefined, '', 'short']) {
+    const { call, env } = setup();
+    env.HMAC_SECRET = secret;
+    const r = await call('POST', '/api/session');
+    assert.equal(r.status, 500, `secret=${secret}`);
+    assert.equal(r.json.error, 'misconfigured');
+    assert.equal(r.json.token, undefined);
+  }
 });

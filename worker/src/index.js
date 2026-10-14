@@ -136,6 +136,11 @@ export function createHandler({ now = () => Date.now() } = {}) {
       const origin = allowedOrigin(request, env);
       const url = new URL(request.url);
       if (request.method === 'OPTIONS') return preflight(origin);
+      // 서명 키 없이 배포되면 "undefined" 로 서명돼 누구나 토큰을 위조할 수 있다 — 열지 말고 닫는다
+      if (typeof env.HMAC_SECRET !== 'string' || env.HMAC_SECRET.length < 16) {
+        console.error('HMAC_SECRET 이 없거나 너무 짧습니다: npx wrangler secret put HMAC_SECRET');
+        return json({ error: 'misconfigured' }, 500, origin);
+      }
       try {
         const t = now();
         if (url.pathname === '/api/session' && request.method === 'POST') return json(await handleSession(env, t), 200, origin);

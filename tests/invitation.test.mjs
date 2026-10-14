@@ -84,3 +84,17 @@ test('화환 보내기는 최하단 버튼 하나뿐이고 오늘의화환 주�
   assert.equal(links.length, 1);
   assert.match(links[0], /href="https:\/\/xn--wh1br48ap0ao51bua\.com\/w\/npZFSGwCKC\/order"/);
 });
+
+test('임시 ATM 안내가 없다', () => {
+  assert.ok(!html.includes('ATM 안내'));
+});
+
+test('신랑 측 혼주 이름·연락처가 채워져 있다', () => {
+  const block = html.slice(html.indexOf('<h3>신랑 측 혼주</h3>'), html.indexOf('<h3>신부 측 혼주</h3>'));
+  assert.ok(!block.includes('(temp)'), '임시 이름이 남음');
+  for (const [name, tel] of [['김세광', '01037418682'], ['민미경', '01089715791']]) {
+    assert.ok(block.includes(name), `${name} 없음`);
+    assert.ok(block.includes(`href="tel:${tel}"`) && block.includes(`href="sms:${tel}"`), `${name} 연락처 없음`);
+  }
+  assert.ok(!/href="(tel|sms):"/.test(block), '빈 연락처 버튼이 남음');
+});

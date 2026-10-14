@@ -2,7 +2,7 @@
 // 시뮬·서버 검증이 이 값을 함께 쓰므로, 점수에 영향을 주는 값(SPEED, SCORE, TICK_HZ)을 바꾸면
 // GAME_VERSION 도 올리고 Worker 의 CLIENT_VERSIONS 를 갱신해야 한다.
 
-export const GAME_VERSION = '2.0.0';
+export const GAME_VERSION = '2.1.0';   // 2.1.0: 가속 3, 최고 속도 상한 제거 (#27)
 
 export const TICK_HZ = 60;
 export const MAX_CATCHUP_TICKS = 5;
@@ -10,7 +10,8 @@ export const MAX_CATCHUP_TICKS = 5;
 // 보이는 가로는 항상 400 (리더보드 공정성). 세로는 화면 비율에 맞춰 늘어난다.
 export const VIEW = { W: 400, PLAYER_X: 60, SPAWN_X: 460, GROUND_RATIO: 0.6 };
 
-export const SPEED = { start: 240, accel: 2.4, max: 520 };   // px/s, px/s² — 약 2분 뒤 최대
+// 속도(t) = min(max, start + accel × t). max 가 Infinity 면 끝없이 빨라진다 (1분 420, 3분 780, 5분 1140 px/s)
+export const SPEED = { start: 240, accel: 3, max: Infinity };   // px/s, px/s²
 export const SCORE = { pxPerPoint: 24, flashEvery: 100 };
 
 // 점프는 높이 고정 포물선. 18틱째 정점 70px, 36틱(0.6초)에 착지.

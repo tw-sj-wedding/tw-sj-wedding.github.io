@@ -8,7 +8,7 @@
 import { SPEED, SCORE, TICK_HZ } from '../config.js';
 
 export function makeScoring({ start, accel, max }, tickHz, pxPerPoint) {
-  // 이 틱까지는 상한에 닿지 않는다 (start + accel*i/tickHz <= max)
+  // 이 틱까지는 상한에 닿지 않는다 (start + accel*i/tickHz <= max). max = Infinity 면 Infinity
   const rampTicks = Math.floor(((max - start) * tickHz) / accel);
 
   const speedAtTick = (n) => Math.min(max, start + (accel * n) / tickHz);

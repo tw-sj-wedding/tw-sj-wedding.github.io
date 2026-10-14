@@ -15,6 +15,7 @@ import { createLeaderboard } from './ui/leaderboard.js';
 
 const MS_PER_TICK = 1000 / TICK_HZ;
 const IDLE_SPEED = 70;   // 타이틀 화면에서 배경이 흐르는 속도 (px/s)
+const SHORT_STAGE_PX = 700;   // 이보다 낮은 화면은 패널을 줄인다 (하단 TOP 5·캐릭터를 가리지 않게)
 
 const stage = document.getElementById('stage');
 const canvas = document.getElementById('cv');
@@ -49,6 +50,7 @@ let nextToken = api.enabled ? api.getToken() : null;
 function layout() {
   const { groundCss } = renderer.resize();
   stage.style.setProperty('--ground-css', `${groundCss}px`);
+  stage.classList.toggle('is-short', stage.clientHeight < SHORT_STAGE_PX);
 }
 
 function setMode(next) {
@@ -112,6 +114,7 @@ function gameOver() {
   run.score = score;
   run.durationTicks = sim.tick;
   leaderboard.resetForRun(run);
+  leaderboard.refreshMini();   // 패널이 뜨는 0.7초 사이에 받아 둔다
   screens.setHi(hi);
   mode = 'over';
   // 넘어진 모습을 잠깐 보여 주고, 점프 버튼을 연타하던 손가락이 "다시 하기"를 바로 누르지 않게
@@ -225,7 +228,7 @@ screens.onAction((action, data) => {
   else if (action === 'change') toTitle();
   else if (action === 'register') leaderboard.openRegister();
   else if (action === 'register-cancel') leaderboard.cancelRegister();
-  else if (action === 'board') leaderboard.openBoard('title');
+  else if (action === 'board') leaderboard.openBoard(mode === 'over' ? 'over' : 'title');
   else if (action === 'board-close') leaderboard.close();
 });
 
@@ -247,15 +250,6 @@ window.addEventListener('popstate', () => {
 });
 window.addEventListener('resize', () => { layout(); if (mode !== 'playing') renderer.draw(view(1)); });
 
-// 카톡 인앱이면 외부 브라우저 링크를 보험으로 노출한다 (기본 경로는 아니다)
-if (/KAKAOTALK/i.test(navigator.userAgent)) {
-  const a = document.getElementById('ext');
-  if (a) {
-    a.href = `kakaotalk://web/openExternal?url=${encodeURIComponent(location.href)}`;
-    a.hidden = false;
-  }
-}
-
 // ?debug=1 일 때만 vConsole (카톡 웹뷰는 원격 디버깅이 사실상 불가)
 if (new URLSearchParams(location.search).get('debug') === '1') {
   const s = document.createElement('script');
@@ -270,6 +264,7 @@ screens.setApiAvailable(api.enabled);
 screens.setLastCharacter(storage.getCharacter());
 screens.setHi(storage.getHi());
 setMode('title');
+leaderboard.refreshMini();
 requestAnimationFrame(frame);
 
 loadObstacleAtlas('assets/');

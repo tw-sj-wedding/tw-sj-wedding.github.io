@@ -177,6 +177,51 @@
   .board__score { font-family: var(--font-num); color: var(--snow-ink); }
   .board-me, .board-status { margin: 0; font-size: 13px; color: var(--ink-soft); }
 
+  /* 하단 TOP 5: 지면선 아래 눈밭에 붙는다 (게임 중엔 이 자리에 조작 버튼) */
+  .mini-board {
+    position: absolute; left: 16px; right: 16px;
+    top: var(--ground-css); bottom: 0;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 10px 0 calc(var(--safe-b) + 12px);
+    pointer-events: none;
+  }
+  .mini-board__card {
+    min-height: 0; overflow: hidden;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 6px 10px 8px;
+    border-radius: 18px;
+    background: rgba(253, 246, 243, .9);
+    box-shadow: 0 6px 18px rgba(40, 50, 60, .10);
+    pointer-events: auto;
+  }
+  .mini-board__head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    width: 100%; max-width: 320px;
+    padding: 4px 10px 6px;
+    border: 0; background: none;
+    font-family: var(--font-ui); font-size: 12px; font-weight: 600; letter-spacing: .06em; color: var(--snow-ink);
+    cursor: pointer;
+  }
+  .mini-board__more { font-weight: 400; color: var(--ink-soft); letter-spacing: 0; }
+  .mini-board .board__row { gap: 8px; padding: 2px 10px; font-size: 13px; }
+  .mini-board .board__who { width: 24px; height: 24px; background-size: 144px 48px; }
+  .mini-board .board__who--bride { background-position: 0 -24px; }
+  .mini-board__status { margin: 4px 0 6px; font-size: 12.5px; color: var(--ink-soft); }
+
+  /* 낮은 화면(카톡 인앱의 iPhone SE 등, 판 높이 < 700): 패널을 줄여 하단 TOP 5 와 지면선의 캐릭터를 가리지 않게.
+     기준은 main.js 가 판 높이로 붙이는 .is-short (미디어 쿼리는 카톡 툴바를 모른다) */
+  .is-short .panel { top: calc(var(--safe-t) + 44px); gap: 8px; padding: 18px 18px 16px; }
+  .is-short .panel--title { top: calc(var(--safe-t) + 12px); padding: 14px 16px 12px; }
+  .is-short h1 { font-size: 30px; }
+  .is-short .lead { margin-top: 0; }
+  .is-short .pick__card { padding: 10px 8px 8px; gap: 4px; }
+  .is-short .pick__img { width: 72px; height: 72px; }
+  .is-short .final b { font-size: 38px; }
+  .is-short .btn { padding: 12px 20px; }
+  .is-short .mini-board .board__row { padding: 1px 10px; }
+  .is-short .mini-board .board__who { width: 22px; height: 22px; background-size: 132px 44px; }
+  .is-short .mini-board .board__who--bride { background-position: 0 -22px; }
+
   .countdown { position: absolute; left: 0; right: 0; top: 30%; display: flex; justify-content: center; pointer-events: none; }
   .countdown span { font-family: var(--font-num); font-size: 72px; font-weight: 700; color: var(--snow-ink); text-shadow: 0 3px 0 rgba(255,255,255,.8); }
 
@@ -207,6 +252,17 @@
     </div>
   </div>
 
+  <!-- 타이틀·게임오버에서 지면선 아래에 늘 보이는 순위 1~5위. 패널보다 앞에 둬서 겹치면 패널이 위로 온다 -->
+  <section id="mini-board" class="mini-board" hidden aria-label="하객 순위 TOP 5">
+    <div class="mini-board__card">
+      <button class="mini-board__head" type="button" data-action="board">
+        <span>하객 순위 TOP 5</span><span class="mini-board__more">전체 보기 ›</span>
+      </button>
+      <ol class="board mini-board__list" id="mini-list"></ol>
+      <p class="mini-board__status" id="mini-status" hidden></p>
+    </div>
+  </section>
+
   <section data-panel="title" class="panel panel--title">
     <p class="eyebrow">TAEWOONG ♡ SUJIN</p>
     <h1>SNOW RUN</h1>
@@ -227,7 +283,6 @@
     <div class="links">
       <a href="#" data-action="board" data-needs-api hidden>리더보드 보기</a>
       <a href="../">청첩장으로 돌아가기</a>
-      <a id="ext" href="#" hidden>외부 브라우저로 열기</a>
     </div>
   </section>
 

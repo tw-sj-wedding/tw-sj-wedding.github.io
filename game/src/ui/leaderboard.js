@@ -1,4 +1,4 @@
-// 리더보드 등록·순위표 화면. 등록은 게임오버 후 하객이 원할 때만 한다.
+// 리더보드 등록·순위표 화면과 하단 TOP 5. 등록은 게임오버 후 하객이 원할 때만 한다.
 // 닉네임은 서버로 보내기 전에 같은 규칙(shared/nickname.js)으로 먼저 안내하고, 최종 판정은 서버가 한다.
 // 사용자 문자열(닉네임)은 textContent 로만 넣는다.
 
@@ -18,6 +18,9 @@ const MESSAGES = {
   old_client: '새 버전이 있어요. 페이지를 새로고침해 주세요',
 };
 
+const MINI_TOP = 5;
+const MINI_MIN_INTERVAL_MS = 15_000;   // 금방 넘어지고 다시 하는 판마다 서버를 부르지 않게
+
 export function messageFor(error, reason) {
   if (error === 'bad_nickname') return MESSAGES[reason] ?? MESSAGES.reserved;
   return MESSAGES[error] ?? '기록을 등록하지 못했어요';
@@ -29,10 +32,13 @@ export function createLeaderboard({ root, api, storage, setMode }) {
     form: $('#reg-form'), name: $('#reg-name'), error: $('#reg-error'), submit: $('#reg-submit'),
     score: $('#reg-score'), list: $('#board-list'), me: $('#board-me'), status: $('#board-status'),
     registerBtn: $('[data-action="register"]'),
+    miniList: $('#mini-list'), miniStatus: $('#mini-status'),
   };
   let run = null;
   let returnTo = 'title';
   let busy = false;
+  let miniFetchedAt = -Infinity;
+  let miniPending = null;
 
   function showError(msg) {
     el.error.textContent = msg;
@@ -119,6 +125,7 @@ export function createLeaderboard({ root, api, storage, setMode }) {
     setMode('board');
     const data = await api.board(storage.getPlayerId());
     if (!data) { el.status.textContent = '순위표를 불러오지 못했어요'; return; }
+    renderMini(data);
     const myRank = data.me?.rank ?? highlightRank;
     if (data.top.length === 0) el.status.textContent = '아직 등록한 하객이 없어요. 첫 번째가 되어 보세요!';
     else el.status.hidden = true;
@@ -129,12 +136,31 @@ export function createLeaderboard({ root, api, storage, setMode }) {
     }
   }
 
+  function renderMini(data) {
+    miniFetchedAt = performance.now();
+    const top = data.top.slice(0, MINI_TOP);
+    el.miniList.replaceChildren(...top.map((r) => row(r, r.rank === data.me?.rank)));
+    el.miniStatus.textContent = top.length === 0 ? '아직 등록한 하객이 없어요. 첫 번째가 되어 보세요!' : '';
+    el.miniStatus.hidden = top.length > 0;
+  }
+
+  // 하단 TOP 5 갱신. 최근에 받았으면 건너뛴다. 실패하면 이전 목록을 그대로 둔다
+  function refreshMini() {
+    if (!api.enabled || miniPending || performance.now() - miniFetchedAt < MINI_MIN_INTERVAL_MS) return;
+    if (miniFetchedAt === -Infinity) { el.miniStatus.textContent = '불러오는 중…'; el.miniStatus.hidden = false; }
+    miniPending = api.board(storage.getPlayerId()).then((data) => {
+      if (data) renderMini(data);
+      else if (miniFetchedAt === -Infinity) el.miniStatus.textContent = '순위표를 불러오지 못했어요';
+    }).finally(() => { miniPending = null; });
+  }
+
   el.form.addEventListener('submit', (e) => { e.preventDefault(); submit(); });
 
   return {
     resetForRun,
     openRegister,
     openBoard,
+    refreshMini,
     close() { setMode(returnTo); },
     cancelRegister() { el.name.blur(); setMode('over'); },
   };

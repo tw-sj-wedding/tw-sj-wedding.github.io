@@ -8,6 +8,7 @@ export function createScreens(root) {
   const el = {
     hud: $('#hud'),
     controls: $('#controls'),
+    miniBoard: $('#mini-board'),
     hint: $('#hint'),
     score: $('#score'),
     hi: $('#hi'),
@@ -23,6 +24,7 @@ export function createScreens(root) {
 
   let handler = () => {};
   let lastScoreText = '';
+  let apiOn = false;
 
   root.addEventListener('click', (e) => {
     const target = e.target.closest?.('[data-action]');
@@ -36,6 +38,8 @@ export function createScreens(root) {
     for (const p of el.panels) p.hidden = p.dataset.panel !== panel;
     el.hud.hidden = !(mode === 'playing' || mode === 'countdown');
     el.controls.hidden = !(mode === 'playing' || mode === 'countdown');
+    // 하단 TOP 5 는 타이틀·게임오버에서만 (게임 중엔 그 자리에 조작 버튼)
+    el.miniBoard.hidden = !(apiOn && (mode === 'title' || mode === 'over'));
   }
 
   function setScore(n) {
@@ -63,7 +67,7 @@ export function createScreens(root) {
     // data-blocked: 이번 판은 누를 수 없는 버튼 (0점이라 등록 불가, 이미 등록함)
     enableOverButtons(on) { for (const b of el.overButtons) b.disabled = !on || b.hasAttribute('data-blocked'); },
     showHint(on) { el.hint.hidden = !on; },
-    setApiAvailable(on) { for (const n of el.needsApi) n.hidden = !on; },
+    setApiAvailable(on) { apiOn = on; for (const n of el.needsApi) n.hidden = !on; },
     setLastCharacter(c) { for (const p of el.picks) p.classList.toggle('is-last', p.dataset.character === c); },
     portraits: () => [...root.querySelectorAll('[data-portrait]')],
     onAction(fn) { handler = fn; },

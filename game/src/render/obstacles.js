@@ -8,6 +8,8 @@ const C = {
   snow: '#ffffff', snowShade: '#dfe7ee', snowLine: '#8a9cad',
   hat: '#2f3440', carrot: '#e58a3a', coal: '#2f3440', scarf: '#c2836f',
   bird: '#3f4a5a', birdLight: '#6c7a8c', beak: '#e8a33d',
+  jacket: '#d4553f', jacketDark: '#a63d2c', pants: '#2f3440', helmet: '#f2f4f6', goggle: '#2a3140',
+  ski: '#3a7bd5', pole: '#8a96a3', line: '#3b2f2b',
 };
 
 function canvas(w, h) {
@@ -80,6 +82,45 @@ function bird(w, h) {
   return frames;
 }
 
+// 1px 직선 (브레즌햄) — 스키·폴처럼 비스듬한 막대
+function line(ctx, x0, y0, x1, y1) {
+  const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0);
+  const sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
+  let err = dx + dy;
+  for (;;) {
+    ctx.fillRect(x0, y0, 1, 1);
+    if (x0 === x1 && y0 === y1) return;
+    const e2 = 2 * err;
+    if (e2 >= dy) { err += dy; x0 += sx; }
+    if (e2 <= dx) { err += dx; y0 += sy; }
+  }
+}
+
+// 넘어진 스키어: 등을 대고 누워 있고, 스키 한 짝은 눈에 박혀 비스듬히 서 있다
+function skierDown(w, h) {
+  const { c, ctx } = canvas(w, h);
+  ctx.fillStyle = C.ski;                         // 바닥에 깔린 스키
+  ctx.fillRect(14, h - 2, w - 14, 1);
+  ctx.fillRect(w - 2, h - 3, 2, 1);              // 스키 앞코가 살짝 들림
+  line(ctx, 26, h - 4, w - 3, 1);                // 박혀 선 스키
+  ctx.fillStyle = C.pole;
+  line(ctx, 9, h - 7, 14, 0);                    // 하늘로 뻗은 폴
+  ctx.fillStyle = C.pants;                       // 다리
+  ctx.fillRect(20, h - 6, 8, 3);
+  ctx.fillStyle = C.jacket;                      // 몸통
+  ctx.fillRect(7, h - 8, 14, 5);
+  ctx.fillStyle = C.jacketDark;
+  ctx.fillRect(7, h - 4, 14, 1);
+  ctx.fillRect(11, h - 9, 3, 2);                 // 위로 든 팔
+  blob(ctx, 4.5, h - 6.5, 3.5, 3.5, C.helmet, '#d5dbe1', C.helmet, C.line);   // 헬멧
+  ctx.fillStyle = C.goggle;
+  ctx.fillRect(5, h - 8, 3, 2);
+  ctx.fillStyle = C.snow;                        // 넘어지며 튄 눈
+  ctx.fillRect(0, h - 1, 3, 1);
+  ctx.fillRect(18, h - 1, 2, 1);
+  return [c];
+}
+
 let cache = null;
 
 function build() {
@@ -89,6 +130,7 @@ function build() {
     rock2: rocks(o.rock2.w, o.rock2.h, 2),
     rock3: rocks(o.rock3.w, o.rock3.h, 3),
     snowman: snowman(o.snowman.w, o.snowman.h),
+    skierDown: skierDown(o.skierDown.w, o.skierDown.h),
     birdLow: bird(o.birdLow.w, o.birdLow.h),
     birdHigh: bird(o.birdHigh.w, o.birdHigh.h),
   };

@@ -93,12 +93,23 @@ test('서 있으면 높은 새에 부딪히고, 숙이면 지나간다', () => {
 });
 
 test('숙여도 낮은 새와 지상 장애물에는 부딪힌다', () => {
-  for (const type of ['birdLow', 'rock1', 'snowman']) {
+  for (const type of ['birdLow', 'rock1', 'snowman', 'skierDown']) {
     const s = bare();
     place(s, type);
     step(s, DUCK_IN);
     assert.ok(isOver(s), `숙여서 ${type} 를 통과함`);
   }
+});
+
+test('넘어진 스키어는 제때 뛰면 넘을 수 있다', () => {
+  const s = bare();
+  const o = OBSTACLES.skierDown;
+  // 정점(18틱)에 장애물 중심이 신랑 중심을 지나도록 놓는다
+  const dx = Math.round((s.speed / TICK_HZ) * (JUMP.airTicks / 2) - o.w / 2);
+  place(s, 'skierDown', dx);
+  step(s, JUMP_IN);
+  for (let i = 0; i < JUMP.airTicks + 10; i++) step(s, IDLE);
+  assert.ok(!isOver(s), '제때 뛰었는데 넘어진 스키어에 걸림');
 });
 
 test('지상 장애물에 부딪히면 게임오버, 이후 step은 상태를 바꾸지 않는다', () => {
@@ -173,7 +184,18 @@ test('연속 장애물 간격은 항상 도착 시점 기준 최소 간격 이�
   }
 });
 
-test('300점 전에는 새가 나오지 않는다', () => {
+test('새는 150점부터 나온다', () => {
+  // 처음 몇 판에서 새를 일찍 보여 주려고 300 → 150점으로 앞당겼다 (#24)
+  let earliest = Infinity;
+  for (let seed = 1; seed <= 30; seed++) {
+    runWithBot(seed, 60 * TICK_HZ, (kind, s, o) => {
+      if (kind === 'spawn' && o.type.startsWith('bird')) earliest = Math.min(earliest, getScore(s));
+    });
+  }
+  assert.ok(earliest >= 150 && earliest < 300, `가장 이른 새가 ${earliest}점`);
+});
+
+test('등장 점수 전에는 새가 나오지 않는다', () => {
   for (let seed = 1; seed <= 30; seed++) {
     runWithBot(seed, 60 * TICK_HZ, (kind, s, o) => {
       if (kind === 'spawn' && o.type.startsWith('bird')) {

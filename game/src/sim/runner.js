@@ -36,9 +36,7 @@ export function createRun(seed) {
 }
 
 function pickType(state) {
-  if (scoreAtTick(state.tick) >= SPAWN.birdFromScore && randInt(state.rng, 100) < SPAWN.birdPct) {
-    return randInt(state.rng, 2) === 0 ? 'birdLow' : 'birdHigh';
-  }
+  if (scoreAtTick(state.tick) >= SPAWN.liftFromScore && randInt(state.rng, 100) < SPAWN.liftPct) return 'lift';
   let roll = randInt(state.rng, GROUND_TOTAL);
   for (const [type, weight] of SPAWN.ground) {
     if (roll < weight) return type;

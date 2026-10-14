@@ -14,7 +14,7 @@ export function botInput(state) {
   if (!next) return { jump: false, duck: false };
 
   const v = state.speed / TICK_HZ;   // 틱당 px
-  if (next.type === 'birdHigh') {
+  if (next.type === 'lift') {
     return { jump: false, duck: (nextX - px1) / v < 20 };
   }
   // 장애물 중심이 신랑 중심을 지날 때 정점에 오도록 뛴다

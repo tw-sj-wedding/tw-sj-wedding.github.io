@@ -113,18 +113,18 @@
     text-align: center;
     touch-action: pan-y;
   }
-  .panel--title { top: calc(var(--safe-t) + 20px); }
+  .panel--title { top: calc(var(--safe-t) + 20px); gap: 10px; padding: 20px 18px 16px; }
   .eyebrow { margin: 0; font-size: 11px; letter-spacing: .3em; color: var(--ink-soft); }
   h1 { margin: 0; font-family: var(--font-num); font-size: 34px; letter-spacing: .14em; color: var(--snow-ink); }
   h2 { margin: 0; font-family: var(--font-kr); font-weight: 400; font-size: 22px; }
-  .lead { margin: 4px 0 0; font-family: var(--font-kr); font-size: 15px; color: var(--ink); }
+  .lead { margin: 0; font-family: var(--font-kr); font-size: 15px; color: var(--ink); }
   .howto { margin: 0; font-size: 12.5px; line-height: 1.7; color: var(--ink-soft); }
   .pick { display: flex; gap: 12px; width: 100%; justify-content: center; }
   .pick__card {
     position: relative;
-    flex: 1 1 0; max-width: 150px;
-    display: flex; flex-direction: column; align-items: center; gap: 6px;
-    padding: 14px 8px 12px;
+    flex: 1 1 0; max-width: 160px;
+    display: flex; flex-direction: column; align-items: stretch; gap: 6px;
+    padding: 6px 6px 9px;
     border: 2px solid var(--line); border-radius: 18px;
     background: #fff;
     font-family: var(--font-ui); font-size: 14px; color: var(--ink);
@@ -132,8 +132,37 @@
   }
   .pick__card:active { transform: scale(.97); }
   .pick__card.is-last { border-color: var(--accent); }
-  .pick__img { width: 96px; height: 96px; image-rendering: pixelated; background: linear-gradient(#e7eff6, #f7fafc); border-radius: 12px; }
-  .pick__last { position: absolute; top: -9px; right: 10px; font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--accent); color: #fff; }
+  /* 카드 그림 칸: 하늘·눈밭 위에 실사 인물이 먼저 서 있고, 이어서 그 앞에 픽셀아트가 튀어나온다 */
+  .pick__scene {
+    position: relative; display: block;
+    height: 138px;
+    border-radius: 13px; overflow: hidden;
+    background: linear-gradient(#c9dcec 0%, #e6eff6 66%, #f8fbfd 66%, #fff 100%);
+  }
+  .pick__photo {
+    position: absolute; bottom: 9%; left: 62%;
+    height: 86%; width: auto; max-width: none;
+    transform: translateX(-50%);
+    pointer-events: none;   /* 길게 눌러도 이미지 저장 메뉴 대신 카드 탭이 되게 */
+    animation: pick-photo .45s ease-out both;
+  }
+  .pick__img {
+    position: absolute; bottom: 4%; left: 30%;
+    width: 72px; height: 72px;
+    transform: translateX(-50%);
+    image-rendering: pixelated;
+    animation: pick-pop .5s cubic-bezier(.2, .9, .3, 1.35) .55s both;
+  }
+  .pick__card + .pick__card .pick__img { animation-delay: .65s; }
+  .pick__card + .pick__card .pick__photo { animation-delay: .1s; }
+  .pick__name { text-align: center; }
+  @keyframes pick-photo { from { opacity: 0; transform: translate(-50%, 8px); } }
+  @keyframes pick-pop {
+    from { opacity: 0; transform: translate(-50%, 14px) scale(.4); }
+    to { opacity: 1; transform: translateX(-50%); }
+  }
+  @media (prefers-reduced-motion: reduce) { .pick__photo, .pick__img { animation: none; } }
+  .pick__last { position: absolute; z-index: 1; top: -9px; right: 10px; font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--accent); color: #fff; }
   .pick__card:not(.is-last) .pick__last { display: none; }
   .final { margin: 0; font-family: var(--font-num); color: var(--snow-ink); }
   .final b { font-size: 44px; }
@@ -254,8 +283,10 @@
   .is-short .panel--title { top: calc(var(--safe-t) + 12px); padding: 14px 16px 12px; }
   .is-short h1 { font-size: 30px; }
   .is-short .lead { margin-top: 0; }
-  .is-short .pick__card { padding: 10px 8px 8px; gap: 4px; }
-  .is-short .pick__img { width: 72px; height: 72px; }
+  .is-short .pick__card { padding: 5px 5px 7px; gap: 4px; }
+  .is-short .pick__scene { height: 98px; }
+  .is-short .panel--title .eyebrow { display: none; }   /* 실사 카드가 들어가 높아진 만큼 장식 줄을 뺀다 */
+  .is-short .pick__img { width: 56px; height: 56px; }
   .is-short .final b { font-size: 38px; }
   .is-short .btn { padding: 12px 20px; }
   .is-short .mini-board .board__row { padding: 1px 10px; }
@@ -310,16 +341,22 @@
     <div class="pick">
       <button class="pick__card" type="button" data-action="pick" data-character="groom">
         <span class="pick__last">지난번</span>
-        <canvas class="pick__img" data-portrait="groom"></canvas>
-        <span>신랑 태웅</span>
+        <span class="pick__scene">
+          <img class="pick__photo" src="assets/photos/groom.png" alt="" decoding="async" draggable="false">
+          <canvas class="pick__img" data-portrait="groom"></canvas>
+        </span>
+        <span class="pick__name">신랑 태웅</span>
       </button>
       <button class="pick__card" type="button" data-action="pick" data-character="bride">
         <span class="pick__last">지난번</span>
-        <canvas class="pick__img" data-portrait="bride"></canvas>
-        <span>신부 수진</span>
+        <span class="pick__scene">
+          <img class="pick__photo" src="assets/photos/bride.png" alt="" decoding="async" draggable="false">
+          <canvas class="pick__img" data-portrait="bride"></canvas>
+        </span>
+        <span class="pick__name">신부 수진</span>
       </button>
     </div>
-    <p class="howto">▲ 점프로 바위와 눈사람을 넘고<br>▼ 숙이기로 머리 위의 새를 피하세요</p>
+    <p class="howto">▲ 점프로 넘고 · ▼ 숙여서 새를 피해요</p>
     <div class="links">
       <a href="#" data-action="board" data-needs-api hidden>리더보드 보기</a>
       <a href="../">청첩장으로 돌아가기</a>

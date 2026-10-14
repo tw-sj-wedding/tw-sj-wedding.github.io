@@ -1,115 +1,229 @@
-import { FP, TICK_HZ, MAX_CATCHUP_TICKS, TOTAL_PX, GAME_VERSION } from './config.js';
-import { createSim, step, isOver, getOutcome } from './sim/stage1.js';
+// 부트와 상태 머신. 고정 60Hz 틱 + accumulator (60Hz·120Hz 화면에서 속도가 같다).
+// 모드: title → playing ⇄ paused → countdown → playing → over → (retry | title)
+
+import { TICK_HZ, MAX_CATCHUP_TICKS, SCORE, ANIM, GAME_VERSION, API_BASE } from './config.js';
+import { createRun, step, isOver, getScore, poseOf } from './sim/runner.js';
 import { createRenderer } from './render/renderer.js';
+import { loadSprites, drawPortrait } from './render/sprites.js';
 import { createInput } from './input.js';
 import { createAudio } from './audio.js';
 import { createScreens } from './ui/screens.js';
+import { createStorage } from './storage.js';
 
 const MS_PER_TICK = 1000 / TICK_HZ;
-const UNLOCK_KEY = 'twsj.stage2Unlocked';
+const IDLE_SPEED = 70;   // 타이틀 화면에서 배경이 흐르는 속도 (px/s)
 
-const root = document.getElementById('app');
-const canvas = document.getElementById('cv');
 const stage = document.getElementById('stage');
-
-const renderer = createRenderer(canvas);
-const input = createInput(stage);
+const canvas = document.getElementById('cv');
+const renderer = createRenderer(canvas, stage);
+const screens = createScreens(stage);
+const storage = createStorage();
 const audio = createAudio();
-const screens = createScreens(root);
+const input = createInput({
+  jumpEl: document.getElementById('btn-jump'),
+  duckEl: document.getElementById('btn-duck'),
+  keyTarget: window,
+});
 
+let mode = 'title';
+let character = storage.getCharacter() ?? 'groom';
 let sim = null;
-let prev = { progressFp: 0, playerXFp: 0 };
+let prev = { distance: 0, playerY: 0 };
 let acc = 0;
-let last = 0;
-let mode = 'title';   // title | playing | paused | cleared | failed
+let last = performance.now();
+let idleDistance = 0;
+let clock = 0;            // 연출용 시간(초). 시뮬에는 쓰지 않는다
+let lastFlashStep = 0;
+let hintTimer = 0;
+let overTimers = [];
+let countdownTimer = 0;
+let guardArmed = false;
+
+function layout() {
+  const { groundCss } = renderer.resize();
+  stage.style.setProperty('--ground-css', `${groundCss}px`);
+}
 
 function setMode(next) {
   mode = next;
-  screens.show(next === 'playing' ? 'hud' : next);
+  screens.show(next);
 }
 
 function newSeed() {
-  // 시뮬 밖이므로 Date/random을 써도 된다. 시뮬은 이 seed만 받는다.
-  return (Date.now() ^ (Math.random() * 0xffffffff)) >>> 0;
+  // 시뮬 밖이므로 Date/random 을 써도 된다. 시뮬은 이 seed 만 받는다.
+  return (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
 }
 
-function startRun() {
+// Android 뒤로가기·iOS 엣지 스와이프를 한 번 받아 이탈 대신 일시정지가 되게 한다
+function armBackGuard() {
+  if (guardArmed) return;
+  history.pushState({ snowRun: true }, '');
+  guardArmed = true;
+}
+
+function clearOverTimers() {
+  for (const t of overTimers) clearTimeout(t);
+  overTimers = [];
+}
+
+function startRun(c = character) {
+  character = c;
+  storage.setCharacter(c);
   audio.unlock();
-  sim = createSim(newSeed());
-  prev = { progressFp: sim.progressFp, playerXFp: sim.playerXFp };
+  clearOverTimers();
+  clearTimeout(countdownTimer);
+  sim = createRun(newSeed());
+  prev = { distance: 0, playerY: 0 };
   input.reset();
   acc = 0;
   last = performance.now();
-  screens.setLives(sim.lives);
-  screens.setProgress(0);
+  lastFlashStep = 0;
+  screens.setScore(0);
+  screens.setHi(storage.getHi());
+  armBackGuard();
   setMode('playing');
-  // Android 뒤로가기를 한 번 삼켜서 이탈 대신 일시정지가 되게 한다
-  history.pushState({ game: 'playing' }, '');
+
+  if (!storage.hintSeen()) {
+    screens.showHint(true);
+    clearTimeout(hintTimer);
+    hintTimer = setTimeout(() => screens.showHint(false), 5000);
+  }
 }
 
-function finish(outcome) {
-  if (outcome === 'cleared') {
-    try { localStorage.setItem(UNLOCK_KEY, '1'); } catch { /* 인앱에서 막힐 수 있다 */ }
-  }
-  setMode(outcome);
+function gameOver() {
+  const score = getScore(sim);
+  const prevHi = storage.getHi();
+  const hi = storage.setHi(score);
+  input.reset();
+  screens.showHint(false);
+  storage.markHintSeen();
+  screens.setOver({ score, hi, newRecord: score > prevHi && score > 0 });
+  screens.setHi(hi);
+  mode = 'over';
+  // 넘어진 모습을 잠깐 보여 주고, 점프 버튼을 연타하던 손가락이 "다시 하기"를 바로 누르지 않게
+  // 패널은 늦게 띄우고 버튼은 그보다 더 늦게 켠다.
+  screens.enableOverButtons(false);
+  overTimers.push(setTimeout(() => { if (mode === 'over') screens.show('over'); }, ANIM.overDelayMs));
+  overTimers.push(setTimeout(() => screens.enableOverButtons(true), ANIM.overDelayMs + 350));
+  screens.show('crashed');   // 패널 없이 HUD·버튼만 숨긴 상태
 }
 
 function pause() {
-  if (mode !== 'playing') return;
+  if (mode === 'countdown') clearTimeout(countdownTimer);
+  if (mode !== 'playing' && mode !== 'countdown') return;
+  input.reset();
   setMode('paused');
 }
 
 function resume() {
   if (mode !== 'paused') return;
-  last = performance.now();
-  acc = 0;
-  setMode('playing');
+  input.reset();
+  setMode('countdown');
+  let n = 3;
+  screens.setCountdown(n);
+  const tick = () => {
+    n -= 1;
+    if (mode !== 'countdown') return;
+    if (n > 0) {
+      screens.setCountdown(n);
+      countdownTimer = setTimeout(tick, ANIM.countdownMs);
+    } else {
+      last = performance.now();
+      acc = 0;
+      setMode('playing');
+    }
+  };
+  countdownTimer = setTimeout(tick, ANIM.countdownMs);
 }
 
-function goHome() {
-  window.location.href = '../';
+function toTitle() {
+  clearOverTimers();
+  clearTimeout(countdownTimer);
+  sim = null;
+  input.reset();
+  screens.setLastCharacter(storage.getCharacter());
+  setMode('title');
+}
+
+function view(alpha) {
+  if (!sim) {
+    return {
+      distance: idleDistance, playerY: 0, pose: 'run', animTick: Math.floor(clock * TICK_HZ),
+      obstacles: [], character, timeSec: clock,
+    };
+  }
+  return {
+    distance: prev.distance + (sim.distance - prev.distance) * alpha,
+    playerY: prev.playerY + (sim.playerY - prev.playerY) * alpha,
+    pose: poseOf(sim),
+    animTick: sim.tick,
+    obstacles: sim.obstacles,
+    character,
+    timeSec: clock,
+  };
 }
 
 function frame(now) {
   requestAnimationFrame(frame);
-
-  if (mode !== 'playing' || sim === null) { last = now; return; }
-
   let dt = now - last;
   last = now;
   if (dt > 250) dt = 250;
-  acc += dt;
 
+  if (mode === 'title') {
+    clock += dt / 1000;
+    idleDistance += (IDLE_SPEED * dt) / 1000;
+    renderer.draw(view(0));
+    return;
+  }
+  if (mode !== 'playing' || !sim) return;
+
+  clock += dt / 1000;
+  acc += dt;
   let steps = 0;
   while (acc >= MS_PER_TICK && steps < MAX_CATCHUP_TICKS && !isOver(sim)) {
-    prev = { progressFp: sim.progressFp, playerXFp: sim.playerXFp };
-    input.pumpKeyboard();
-    step(sim, { targetXQ: input.targetXQ });
+    prev = { distance: sim.distance, playerY: sim.playerY };
+    const inp = input.consume();
+    if (inp.jump && !storage.hintSeen()) { storage.markHintSeen(); screens.showHint(false); }
+    step(sim, inp);
     acc -= MS_PER_TICK;
     steps++;
   }
   if (steps === MAX_CATCHUP_TICKS) acc = 0;   // 따라잡기 포기 (느린 기기 보호)
 
-  screens.setProgress(sim.progressFp / FP / TOTAL_PX);
-  screens.setLives(sim.lives);
-  renderer.draw(sim, prev, Math.min(1, acc / MS_PER_TICK));
+  const score = getScore(sim);
+  screens.setScore(score);
+  const flashStep = Math.floor(score / SCORE.flashEvery);
+  if (flashStep > lastFlashStep) { lastFlashStep = flashStep; screens.flash(); }
 
-  if (isOver(sim)) finish(getOutcome(sim));
+  if (isOver(sim)) {
+    renderer.draw(view(1));
+    gameOver();
+    return;
+  }
+  renderer.draw(view(Math.min(1, acc / MS_PER_TICK)));
 }
 
-screens.onAction((action) => {
-  if (action === 'start' || action === 'retry') startRun();
-  else if (action === 'skip') { audio.unlock(); finish('cleared'); }
+screens.onAction((action, data) => {
+  if (action === 'pick') startRun(data.character === 'bride' ? 'bride' : 'groom');
+  else if (action === 'retry') startRun();
+  else if (action === 'pause') pause();
   else if (action === 'resume') resume();
-  else if (action === 'home') goHome();
+  else if (action === 'change') toTitle();
 });
 
 document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
 window.addEventListener('pagehide', pause);
 window.addEventListener('blur', pause);
-window.addEventListener('popstate', () => { if (mode === 'playing') pause(); });
-window.addEventListener('resize', () => renderer.resize());
-window.addEventListener('orientationchange', () => renderer.resize());
+window.addEventListener('popstate', () => {
+  guardArmed = false;
+  if (mode === 'playing' || mode === 'countdown') {
+    pause();
+    armBackGuard();
+  } else {
+    history.back();   // 게임 중이 아니면 뒤로가기는 그대로 이탈
+  }
+});
+window.addEventListener('resize', () => { layout(); if (mode !== 'playing') renderer.draw(view(1)); });
 
 // 카톡 인앱이면 외부 브라우저 링크를 보험으로 노출한다 (기본 경로는 아니다)
 if (/KAKAOTALK/i.test(navigator.userAgent)) {
@@ -128,6 +242,15 @@ if (new URLSearchParams(location.search).get('debug') === '1') {
   document.head.appendChild(s);
 }
 
+layout();
 input.attach();
+screens.setApiAvailable(Boolean(API_BASE));
+screens.setLastCharacter(storage.getCharacter());
+screens.setHi(storage.getHi());
 setMode('title');
 requestAnimationFrame(frame);
+
+loadSprites('assets/').then((atlas) => {
+  renderer.setAtlas(atlas);
+  for (const c of screens.portraits()) drawPortrait(c, atlas, c.dataset.portrait);
+});

@@ -4,154 +4,227 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="color-scheme" content="light only">
-<title>신부에게 가는 길</title>
+<meta name="theme-color" content="#c7dbeb">
+<title>SNOW RUN · 태웅 ♡ 수진</title>
 <style>
   :root {
     --paper-warm: #fdf6f3;
     --ink: #2f2a27;
     --ink-soft: #8b807a;
     --accent: #c2836f;
-    --accent-soft: #e6b6a5;
+    --accent-deep: #a96c59;
+    --line: #e9ddd7;
+    --snow-ink: #34404f;
     --font-kr: 'Gowun Batang', 'Nanum Myeongjo', serif;
-    --font-ui: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-ui: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+    --font-num: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    --ground-css: 60vh;
+    --safe-t: env(safe-area-inset-top, 0px);
+    --safe-b: env(safe-area-inset-bottom, 0px);
   }
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   html, body {
-    margin: 0; padding: 0;
-    height: 100%;
-    background: var(--paper-warm);
+    margin: 0; padding: 0; height: 100%;
+    background: #dfe9f2;
     color: var(--ink);
     font-family: var(--font-ui);
     -webkit-text-size-adjust: 100%;
-  }
-  #app {
-    position: relative;
-    width: 100%;
-    height: 100dvh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    overflow: hidden;
   }
   #stage {
     position: relative;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 100%; max-width: 480px;
+    height: 100dvh;
+    margin: 0 auto;
+    overflow: hidden;
+    background: #c7dbeb;
     touch-action: none;
     overscroll-behavior: none;
-    user-select: none;
-    -webkit-user-select: none;
+    user-select: none; -webkit-user-select: none;
     -webkit-touch-callout: none;
     -webkit-tap-highlight-color: transparent;
   }
-  #cv { image-rendering: pixelated; display: block; }
+  #cv { position: absolute; left: 0; top: 0; display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
 
-  /* HUD */
+  /* ---------- HUD ---------- */
   #hud {
-    position: absolute; top: 0; left: 0; right: 0;
-    padding: 14px 16px 0;
+    position: absolute; left: 0; right: 0; top: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: calc(var(--safe-t) + 12px) 14px 0;
     pointer-events: none;
   }
-  #bar {
-    position: relative;
-    height: 4px;
-    border-radius: 999px;
-    background: rgba(47, 42, 39, .12);
-  }
-  #bar-fill {
-    height: 100%; width: 0%;
-    border-radius: 999px;
-    background: var(--accent);
-    transition: width .08s linear;
-  }
-  #bar-bride {
-    position: absolute; right: -3px; top: -5px;
-    width: 10px; height: 14px;
-    border-radius: 50% 50% 40% 40%;
-    background: #fff;
-    box-shadow: 0 0 0 1px rgba(47, 42, 39, .22);
-  }
-  #lives { display: flex; gap: 5px; margin-top: 10px; }
-  .heart {
-    width: 11px; height: 10px;
-    background: var(--accent);
-    clip-path: path('M5.5 10 1 5.6A2.9 2.9 0 0 1 5.5 1.9 2.9 2.9 0 0 1 10 5.6z');
-    transition: opacity .2s;
-  }
-  .heart--off { opacity: .18; }
-
-  /* 패널 */
-  [data-panel] {
-    position: absolute; inset: 0;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    gap: 14px;
-    padding: 32px 26px;
-    text-align: center;
-    background: rgba(253, 246, 243, .94);
-  }
-  [data-panel][hidden] { display: none; }
-  h1 { font-family: var(--font-kr); font-size: 22px; font-weight: 400; margin: 0; letter-spacing: .02em; }
-  p  { font-family: var(--font-kr); font-size: 14px; line-height: 1.8; color: var(--ink-soft); margin: 0; }
-  button {
-    font-family: var(--font-ui); font-size: 15px;
-    padding: 13px 30px;
-    border: 0; border-radius: 999px;
-    background: var(--accent); color: #fff;
-    letter-spacing: .04em;
+  .icon-btn {
+    pointer-events: auto;
+    width: 38px; height: 38px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+    border: 0; border-radius: 12px;
+    background: rgba(255, 255, 255, .55);
     cursor: pointer;
   }
-  .links { display: flex; flex-direction: column; gap: 9px; align-items: center; }
-  a { font-size: 13px; color: var(--ink-soft); text-decoration: none; border-bottom: 1px solid rgba(47,42,39,.16); padding-bottom: 1px; }
+  .icon-btn span { width: 4px; height: 14px; border-radius: 1px; background: var(--snow-ink); }
+  .scores { font-family: var(--font-num); color: var(--snow-ink); font-size: 17px; letter-spacing: .06em; display: flex; gap: 14px; align-items: baseline; }
+  .scores .hi { font-size: 13px; opacity: .6; }
+  .scores b { font-weight: 700; }
+  #score.is-flash { animation: flash .6s steps(2, jump-none) 2; }
+  @keyframes flash { 50% { opacity: 0; } }
+
+  /* ---------- 조작 버튼 ---------- */
+  #controls {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    top: var(--ground-css);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 10px;
+    padding: 12px 4% calc(var(--safe-b) + 14px);
+  }
+  .ctl-row { display: flex; gap: 4%; width: 100%; justify-content: center; }
+  .ctl {
+    flex: 0 0 45%;
+    height: min(110px, calc(100dvh - var(--ground-css) - 60px));
+    min-height: 64px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    border: 2px solid rgba(52, 64, 79, .18);
+    border-radius: 22px;
+    background: rgba(255, 255, 255, .78);
+    box-shadow: 0 4px 0 rgba(52, 64, 79, .16);
+    color: var(--snow-ink);
+    font-family: var(--font-ui); font-size: 16px; font-weight: 600; letter-spacing: .04em;
+    touch-action: none;
+    cursor: pointer;
+    transition: transform .05s, box-shadow .05s, background .05s;
+  }
+  .ctl__icon { font-size: 20px; line-height: 1; }
+  .ctl--jump { background: rgba(194, 131, 111, .92); border-color: rgba(120, 70, 55, .25); color: #fff; box-shadow: 0 4px 0 rgba(120, 70, 55, .35); }
+  .ctl.is-pressed { transform: translateY(3px); box-shadow: 0 1px 0 rgba(52, 64, 79, .16); background: rgba(235, 241, 246, .95); }
+  .ctl--jump.is-pressed { background: var(--accent-deep); box-shadow: 0 1px 0 rgba(120, 70, 55, .35); }
+  #hint { margin: 0; font-size: 13px; color: var(--snow-ink); background: rgba(255,255,255,.7); padding: 6px 12px; border-radius: 999px; }
+
+  /* ---------- 패널 ---------- */
+  .panel {
+    position: absolute; left: 16px; right: 16px;
+    top: calc(var(--safe-t) + 56px);
+    max-height: calc(100dvh - var(--safe-t) - var(--safe-b) - 72px);
+    overflow-y: auto;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    padding: 24px 20px 20px;
+    border-radius: 22px;
+    background: rgba(253, 246, 243, .94);
+    box-shadow: 0 10px 30px rgba(40, 50, 60, .14);
+    text-align: center;
+    touch-action: pan-y;
+  }
+  .panel--title { top: calc(var(--safe-t) + 20px); }
+  .eyebrow { margin: 0; font-size: 11px; letter-spacing: .3em; color: var(--ink-soft); }
+  h1 { margin: 0; font-family: var(--font-num); font-size: 34px; letter-spacing: .14em; color: var(--snow-ink); }
+  h2 { margin: 0; font-family: var(--font-kr); font-weight: 400; font-size: 22px; }
+  .lead { margin: 4px 0 0; font-family: var(--font-kr); font-size: 15px; color: var(--ink); }
+  .howto { margin: 0; font-size: 12.5px; line-height: 1.7; color: var(--ink-soft); }
+  .pick { display: flex; gap: 12px; width: 100%; justify-content: center; }
+  .pick__card {
+    position: relative;
+    flex: 1 1 0; max-width: 150px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    padding: 14px 8px 12px;
+    border: 2px solid var(--line); border-radius: 18px;
+    background: #fff;
+    font-family: var(--font-ui); font-size: 14px; color: var(--ink);
+    cursor: pointer;
+  }
+  .pick__card:active { transform: scale(.97); }
+  .pick__card.is-last { border-color: var(--accent); }
+  .pick__img { width: 96px; height: 96px; image-rendering: pixelated; background: linear-gradient(#e7eff6, #f7fafc); border-radius: 12px; }
+  .pick__last { position: absolute; top: -9px; right: 10px; font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--accent); color: #fff; }
+  .pick__card:not(.is-last) .pick__last { display: none; }
+  .final { margin: 0; font-family: var(--font-num); color: var(--snow-ink); }
+  .final b { font-size: 44px; }
+  .final span { font-size: 16px; margin-left: 4px; }
+  .best { margin: -4px 0 4px; font-family: var(--font-num); font-size: 14px; color: var(--ink-soft); }
+  .best em { font-style: normal; font-family: var(--font-ui); color: #fff; background: var(--accent); border-radius: 999px; padding: 2px 9px; margin-left: 6px; font-size: 12px; }
+  .btn {
+    width: 100%; max-width: 280px;
+    padding: 14px 20px;
+    border: 1.5px solid var(--accent); border-radius: 999px;
+    background: #fff; color: var(--accent-deep);
+    font-family: var(--font-ui); font-size: 15px; font-weight: 600; letter-spacing: .04em;
+    cursor: pointer;
+  }
+  .btn--primary { background: var(--accent); color: #fff; }
+  .btn:disabled { opacity: .45; }
+  .links { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 16px; margin-top: 4px; }
+  .links a { font-size: 13px; color: var(--ink-soft); text-decoration: none; border-bottom: 1px solid rgba(47, 42, 39, .18); padding-bottom: 1px; }
+
+  .countdown { position: absolute; left: 0; right: 0; top: 30%; display: flex; justify-content: center; pointer-events: none; }
+  .countdown span { font-family: var(--font-num); font-size: 72px; font-weight: 700; color: var(--snow-ink); text-shadow: 0 3px 0 rgba(255,255,255,.8); }
+
+  #rotate { display: none; }
+  @media (orientation: landscape) and (max-height: 500px) {
+    #rotate {
+      position: fixed; inset: 0; z-index: 10;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--paper-warm); font-family: var(--font-kr); font-size: 18px;
+    }
+  }
 </style>
 </head>
 <body>
-<div id="app">
-  <div id="stage">
-    <canvas id="cv"></canvas>
+<div id="stage">
+  <canvas id="cv"></canvas>
 
-    <div id="hud" hidden>
-      <div id="bar"><div id="bar-fill"></div><span id="bar-bride"></span></div>
-      <div id="lives"></div>
-    </div>
-
-    <section data-panel="title">
-      <h1>신부에게 가는 길</h1>
-      <p>화면을 좌우로 쓸어<br>신랑을 움직여 주세요.<br>꽃다발과 반지를 들고 신부에게 갑니다.</p>
-      <button data-action="start">시작하기</button>
-      <div class="links">
-        <a href="#" data-action="skip">건너뛰기</a>
-        <a href="../">청첩장으로 돌아가기</a>
-        <a id="ext" href="#" hidden>외부 브라우저로 열기</a>
-      </div>
-    </section>
-
-    <section data-panel="paused" hidden>
-      <h1>잠시 멈췄어요</h1>
-      <button data-action="resume">이어하기</button>
-      <div class="links"><a href="../">청첩장으로 돌아가기</a></div>
-    </section>
-
-    <section data-panel="cleared" hidden>
-      <h1>도착했습니다</h1>
-      <p>신랑이 꽃다발과 반지를<br>신부에게 무사히 전했어요.</p>
-      <button data-action="home">청첩장으로 돌아가기</button>
-      <div class="links"><a href="#" data-action="retry">다시 하기</a></div>
-    </section>
-
-    <section data-panel="failed" hidden>
-      <h1>넘어졌어요</h1>
-      <p>신부가 기다리고 있어요.<br>다시 내려가 볼까요?</p>
-      <button data-action="retry">다시 하기</button>
-      <div class="links">
-        <a href="#" data-action="skip">건너뛰기</a>
-        <a href="../">청첩장으로 돌아가기</a>
-      </div>
-    </section>
+  <div id="hud" hidden>
+    <button class="icon-btn" type="button" data-action="pause" aria-label="일시정지"><span></span><span></span></button>
+    <div class="scores"><span class="hi">HI <b id="hi">00000</b></span><b id="score">00000</b></div>
   </div>
+
+  <div id="controls" hidden>
+    <p id="hint" hidden>▼ 누르고 있으면 숙이기 · ▲ 탭하면 점프</p>
+    <div class="ctl-row">
+      <button id="btn-duck" class="ctl" type="button" aria-label="숙이기"><span class="ctl__icon">▼</span><span>숙이기</span></button>
+      <button id="btn-jump" class="ctl ctl--jump" type="button" aria-label="점프"><span class="ctl__icon">▲</span><span>점프</span></button>
+    </div>
+  </div>
+
+  <section data-panel="title" class="panel panel--title">
+    <p class="eyebrow">TAEWOONG ♡ SUJIN</p>
+    <h1>SNOW RUN</h1>
+    <p class="lead">누구로 달려 볼까요?</p>
+    <div class="pick">
+      <button class="pick__card" type="button" data-action="pick" data-character="groom">
+        <span class="pick__last">지난번</span>
+        <canvas class="pick__img" data-portrait="groom"></canvas>
+        <span>신랑 태웅</span>
+      </button>
+      <button class="pick__card" type="button" data-action="pick" data-character="bride">
+        <span class="pick__last">지난번</span>
+        <canvas class="pick__img" data-portrait="bride"></canvas>
+        <span>신부 수진</span>
+      </button>
+    </div>
+    <p class="howto">▲ 점프로 바위와 눈사람을 넘고<br>▼ 숙이기로 머리 위의 새를 피하세요</p>
+    <div class="links">
+      <a href="#" data-action="board" data-needs-api hidden>리더보드 보기</a>
+      <a href="../">청첩장으로 돌아가기</a>
+      <a id="ext" href="#" hidden>외부 브라우저로 열기</a>
+    </div>
+  </section>
+
+  <section data-panel="paused" class="panel" hidden>
+    <h2>잠시 멈췄어요</h2>
+    <button class="btn btn--primary" type="button" data-action="resume">계속하기</button>
+    <div class="links"><a href="#" data-action="change">캐릭터 바꾸기</a><a href="../">청첩장으로</a></div>
+  </section>
+
+  <section data-panel="countdown" class="countdown" hidden><span id="count">3</span></section>
+
+  <section data-panel="over" class="panel" hidden>
+    <h2>넘어졌어요!</h2>
+    <p class="final"><b id="final-score">0</b><span>점</span></p>
+    <p class="best"><span id="best">HI 00000</span><em id="new-record" hidden>신기록!</em></p>
+    <button class="btn btn--primary" type="button" data-action="retry" data-over-btn>다시 하기</button>
+    <button class="btn" type="button" data-action="register" data-over-btn data-needs-api hidden>리더보드에 등록</button>
+    <div class="links"><a href="#" data-action="change">캐릭터 바꾸기</a><a href="../">청첩장으로</a></div>
+  </section>
+
+  <div id="rotate">폰을 세로로 돌려 주세요</div>
 </div>
 <script type="module" src="src/main.js"></script>
 </body>

@@ -1,0 +1,276 @@
+<!-- 생성된 파일입니다. game/dev.html 을 고치고 `npm run build` 를 돌리세요. -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="color-scheme" content="light only">
+<meta name="theme-color" content="#c7dbeb">
+<title>SNOW RUN · 태웅 ♡ 수진</title>
+<style>
+  :root {
+    --paper-warm: #fdf6f3;
+    --ink: #2f2a27;
+    --ink-soft: #8b807a;
+    --accent: #c2836f;
+    --accent-deep: #a96c59;
+    --line: #e9ddd7;
+    --snow-ink: #34404f;
+    --font-kr: 'Gowun Batang', 'Nanum Myeongjo', serif;
+    --font-ui: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+    --font-num: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    --ground-css: 60vh;
+    --safe-t: env(safe-area-inset-top, 0px);
+    --safe-b: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: #dfe9f2;
+    color: var(--ink);
+    font-family: var(--font-ui);
+    -webkit-text-size-adjust: 100%;
+    overflow: hidden;
+  }
+  #stage {
+    position: relative;
+    width: 100%; max-width: 480px;
+    height: 100dvh;
+    margin: 0 auto;
+    overflow: hidden;
+    background: #c7dbeb;
+    touch-action: none;
+    overscroll-behavior: none;
+    user-select: none; -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #cv { position: absolute; left: 0; top: 0; display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+
+  /* ---------- HUD ---------- */
+  #hud {
+    position: absolute; left: 0; right: 0; top: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: calc(var(--safe-t) + 12px) 14px 0;
+    pointer-events: none;
+  }
+  .icon-btn {
+    pointer-events: auto;
+    width: 38px; height: 38px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+    border: 0; border-radius: 12px;
+    background: rgba(255, 255, 255, .55);
+    cursor: pointer;
+  }
+  .icon-btn span { width: 4px; height: 14px; border-radius: 1px; background: var(--snow-ink); }
+  .scores { font-family: var(--font-num); color: var(--snow-ink); font-size: 17px; letter-spacing: .06em; display: flex; gap: 14px; align-items: baseline; }
+  .scores .hi { font-size: 13px; opacity: .6; }
+  .scores b { font-weight: 700; }
+  #score.is-flash { animation: flash .6s steps(2, jump-none) 2; }
+  @keyframes flash { 50% { opacity: 0; } }
+
+  /* ---------- 조작 버튼 ---------- */
+  #controls {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    top: var(--ground-css);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 10px;
+    padding: 12px 4% calc(var(--safe-b) + 14px);
+  }
+  .ctl-row { display: flex; gap: 4%; width: 100%; justify-content: center; }
+  .ctl {
+    flex: 0 0 45%;
+    height: min(110px, calc(100dvh - var(--ground-css) - 60px));
+    min-height: 64px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    border: 2px solid rgba(52, 64, 79, .18);
+    border-radius: 22px;
+    background: rgba(255, 255, 255, .78);
+    box-shadow: 0 4px 0 rgba(52, 64, 79, .16);
+    color: var(--snow-ink);
+    font-family: var(--font-ui); font-size: 16px; font-weight: 600; letter-spacing: .04em;
+    touch-action: none;
+    cursor: pointer;
+    transition: transform .05s, box-shadow .05s, background .05s;
+  }
+  .ctl__icon { font-size: 20px; line-height: 1; }
+  .ctl--jump { background: rgba(194, 131, 111, .92); border-color: rgba(120, 70, 55, .25); color: #fff; box-shadow: 0 4px 0 rgba(120, 70, 55, .35); }
+  .ctl.is-pressed { transform: translateY(3px); box-shadow: 0 1px 0 rgba(52, 64, 79, .16); background: rgba(235, 241, 246, .95); }
+  .ctl--jump.is-pressed { background: var(--accent-deep); box-shadow: 0 1px 0 rgba(120, 70, 55, .35); }
+  #hint { margin: 0; font-size: 13px; color: var(--snow-ink); background: rgba(255,255,255,.7); padding: 6px 12px; border-radius: 999px; }
+
+  /* ---------- 패널 ---------- */
+  .panel {
+    position: absolute; left: 16px; right: 16px;
+    top: calc(var(--safe-t) + 56px);
+    max-height: calc(100dvh - var(--safe-t) - var(--safe-b) - 72px);
+    overflow-y: auto;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    padding: 24px 20px 20px;
+    border-radius: 22px;
+    background: rgba(253, 246, 243, .94);
+    box-shadow: 0 10px 30px rgba(40, 50, 60, .14);
+    text-align: center;
+    touch-action: pan-y;
+  }
+  .panel--title { top: calc(var(--safe-t) + 20px); }
+  .eyebrow { margin: 0; font-size: 11px; letter-spacing: .3em; color: var(--ink-soft); }
+  h1 { margin: 0; font-family: var(--font-num); font-size: 34px; letter-spacing: .14em; color: var(--snow-ink); }
+  h2 { margin: 0; font-family: var(--font-kr); font-weight: 400; font-size: 22px; }
+  .lead { margin: 4px 0 0; font-family: var(--font-kr); font-size: 15px; color: var(--ink); }
+  .howto { margin: 0; font-size: 12.5px; line-height: 1.7; color: var(--ink-soft); }
+  .pick { display: flex; gap: 12px; width: 100%; justify-content: center; }
+  .pick__card {
+    position: relative;
+    flex: 1 1 0; max-width: 150px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    padding: 14px 8px 12px;
+    border: 2px solid var(--line); border-radius: 18px;
+    background: #fff;
+    font-family: var(--font-ui); font-size: 14px; color: var(--ink);
+    cursor: pointer;
+  }
+  .pick__card:active { transform: scale(.97); }
+  .pick__card.is-last { border-color: var(--accent); }
+  .pick__img { width: 96px; height: 96px; image-rendering: pixelated; background: linear-gradient(#e7eff6, #f7fafc); border-radius: 12px; }
+  .pick__last { position: absolute; top: -9px; right: 10px; font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--accent); color: #fff; }
+  .pick__card:not(.is-last) .pick__last { display: none; }
+  .final { margin: 0; font-family: var(--font-num); color: var(--snow-ink); }
+  .final b { font-size: 44px; }
+  .final span { font-size: 16px; margin-left: 4px; }
+  .best { margin: -4px 0 4px; font-family: var(--font-num); font-size: 14px; color: var(--ink-soft); }
+  .best em { font-style: normal; font-family: var(--font-ui); color: #fff; background: var(--accent); border-radius: 999px; padding: 2px 9px; margin-left: 6px; font-size: 12px; }
+  .btn {
+    width: 100%; max-width: 280px;
+    padding: 14px 20px;
+    border: 1.5px solid var(--accent); border-radius: 999px;
+    background: #fff; color: var(--accent-deep);
+    font-family: var(--font-ui); font-size: 15px; font-weight: 600; letter-spacing: .04em;
+    cursor: pointer;
+  }
+  .btn--primary { background: var(--accent); color: #fff; }
+  .btn:disabled { opacity: .45; }
+  .links { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 16px; margin-top: 4px; }
+  .links a { font-size: 13px; color: var(--ink-soft); text-decoration: none; border-bottom: 1px solid rgba(47, 42, 39, .18); padding-bottom: 1px; }
+
+  /* ---------- 등록·순위표 ---------- */
+  .reg-form { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; }
+  .reg-input {
+    width: 100%; max-width: 280px;
+    padding: 13px 16px;
+    border: 1.5px solid var(--line); border-radius: 14px;
+    background: #fff; color: var(--ink);
+    font-family: var(--font-ui); font-size: 16px; text-align: center;
+    user-select: text; -webkit-user-select: text;
+  }
+  .reg-input:focus { outline: none; border-color: var(--accent); }
+  .form-error { margin: 0; font-size: 13px; color: #b5523b; }
+  .notice { margin: 0; font-size: 11.5px; line-height: 1.6; color: var(--ink-soft); }
+  .board { list-style: none; margin: 0; padding: 0; width: 100%; max-width: 320px; }
+  .board__row { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 10px; font-size: 14px; }
+  .board__row:nth-child(odd) { background: rgba(233, 221, 215, .35); }
+  .board__row.is-me { background: rgba(194, 131, 111, .2); font-weight: 700; }
+  .board__rank { width: 22px; text-align: right; font-family: var(--font-num); color: var(--ink-soft); }
+  .board__who { width: 32px; height: 32px; flex: none; background: url(assets/sprites.png) no-repeat; background-size: 192px 64px; image-rendering: pixelated; }
+  .board__who--bride { background-position: 0 -32px; }
+  .board__name { flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .board__score { font-family: var(--font-num); color: var(--snow-ink); }
+  .board-me, .board-status { margin: 0; font-size: 13px; color: var(--ink-soft); }
+
+  .countdown { position: absolute; left: 0; right: 0; top: 30%; display: flex; justify-content: center; pointer-events: none; }
+  .countdown span { font-family: var(--font-num); font-size: 72px; font-weight: 700; color: var(--snow-ink); text-shadow: 0 3px 0 rgba(255,255,255,.8); }
+
+  #rotate { display: none; }
+  @media (orientation: landscape) and (max-height: 500px) {
+    #rotate {
+      position: fixed; inset: 0; z-index: 10;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--paper-warm); font-family: var(--font-kr); font-size: 18px;
+    }
+  }
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="cv"></canvas>
+
+  <div id="hud" hidden>
+    <button class="icon-btn" type="button" data-action="pause" aria-label="일시정지"><span></span><span></span></button>
+    <div class="scores"><span class="hi">HI <b id="hi">00000</b></span><b id="score">00000</b></div>
+  </div>
+
+  <div id="controls" hidden>
+    <p id="hint" hidden>▼ 누르고 있으면 숙이기 · ▲ 탭하면 점프</p>
+    <div class="ctl-row">
+      <button id="btn-duck" class="ctl" type="button" aria-label="숙이기"><span class="ctl__icon">▼</span><span>숙이기</span></button>
+      <button id="btn-jump" class="ctl ctl--jump" type="button" aria-label="점프"><span class="ctl__icon">▲</span><span>점프</span></button>
+    </div>
+  </div>
+
+  <section data-panel="title" class="panel panel--title">
+    <p class="eyebrow">TAEWOONG ♡ SUJIN</p>
+    <h1>SNOW RUN</h1>
+    <p class="lead">누구로 달려 볼까요?</p>
+    <div class="pick">
+      <button class="pick__card" type="button" data-action="pick" data-character="groom">
+        <span class="pick__last">지난번</span>
+        <canvas class="pick__img" data-portrait="groom"></canvas>
+        <span>신랑 태웅</span>
+      </button>
+      <button class="pick__card" type="button" data-action="pick" data-character="bride">
+        <span class="pick__last">지난번</span>
+        <canvas class="pick__img" data-portrait="bride"></canvas>
+        <span>신부 수진</span>
+      </button>
+    </div>
+    <p class="howto">▲ 점프로 바위와 눈사람을 넘고<br>▼ 숙이기로 머리 위의 새를 피하세요</p>
+    <div class="links">
+      <a href="#" data-action="board" data-needs-api hidden>리더보드 보기</a>
+      <a href="../">청첩장으로 돌아가기</a>
+      <a id="ext" href="#" hidden>외부 브라우저로 열기</a>
+    </div>
+  </section>
+
+  <section data-panel="paused" class="panel" hidden>
+    <h2>잠시 멈췄어요</h2>
+    <button class="btn btn--primary" type="button" data-action="resume">계속하기</button>
+    <div class="links"><a href="#" data-action="change">캐릭터 바꾸기</a><a href="../">청첩장으로</a></div>
+  </section>
+
+  <section data-panel="countdown" class="countdown" hidden><span id="count">3</span></section>
+
+  <section data-panel="over" class="panel" hidden>
+    <h2>넘어졌어요!</h2>
+    <p class="final"><b id="final-score">0</b><span>점</span></p>
+    <p class="best"><span id="best">HI 00000</span><em id="new-record" hidden>신기록!</em></p>
+    <button class="btn btn--primary" type="button" data-action="retry" data-over-btn>다시 하기</button>
+    <button class="btn" type="button" data-action="register" data-over-btn data-needs-api hidden>리더보드에 등록</button>
+    <div class="links"><a href="#" data-action="change">캐릭터 바꾸기</a><a href="../">청첩장으로</a></div>
+  </section>
+
+  <section data-panel="register" class="panel" hidden>
+    <h2>리더보드에 등록</h2>
+    <p class="final"><b id="reg-score">0</b><span>점</span></p>
+    <form class="reg-form" id="reg-form" novalidate>
+      <input class="reg-input" id="reg-name" type="text" maxlength="10" autocomplete="nickname" autocapitalize="off" enterkeyhint="done" placeholder="닉네임 (2~10자)" aria-label="닉네임">
+      <p class="form-error" id="reg-error" role="alert" hidden></p>
+      <button class="btn btn--primary" type="submit" id="reg-submit">등록하기</button>
+    </form>
+    <p class="notice">한글·영문·숫자 2~10자, 띄어쓰기 없이<br>기록은 결혼식 1개월 뒤(2027년 3월 1일) 지워져요</p>
+    <div class="links"><a href="#" data-action="register-cancel">돌아가기</a></div>
+  </section>
+
+  <section data-panel="board" class="panel" hidden>
+    <h2>하객 순위표</h2>
+    <ol class="board" id="board-list"></ol>
+    <p class="board-me" id="board-me" hidden></p>
+    <p class="board-status" id="board-status" hidden></p>
+    <button class="btn" type="button" data-action="board-close">닫기</button>
+  </section>
+
+  <div id="rotate">폰을 세로로 돌려 주세요</div>
+</div>
+<script src="dist/game.bc67d81e9b.js" defer></script>
+</body>
+</html>

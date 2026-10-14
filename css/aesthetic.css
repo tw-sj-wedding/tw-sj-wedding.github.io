@@ -973,3 +973,75 @@ div.toast p {
     :root { --gut: 6%; --sec-pad: 60px; }
     .wd__num { font-size: 21px; }
 }
+
+/* ============================================================
+   10. 미니게임 진입 카드 (게임 본체는 /game)
+   ============================================================ */
+.minigame {
+    padding: 34px var(--gut) 0;
+}
+.minigame__card {
+    display: block;
+    padding: 22px 22px 24px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: linear-gradient(180deg, #eef4f9 0%, var(--paper-warm) 62%);
+    text-align: center;
+    text-decoration: none;
+    transition: transform .35s var(--ease), box-shadow .35s var(--ease);
+}
+.minigame__card:active {
+    transform: scale(.985);
+    box-shadow: 0 4px 18px rgba(60, 40, 32, .10);
+}
+.minigame__chars {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+/* 게임 스프라이트 시트(384x128, 64칸)의 달리기 첫 프레임을 2배로 */
+.minigame__char {
+    width: 64px;
+    height: 64px;
+    background: url(../game/assets/sprites.png) no-repeat;
+    background-size: 384px 128px;
+    image-rendering: pixelated;
+}
+.minigame__char--groom { background-position: 0 0; }
+.minigame__char--bride { background-position: 0 -64px; }
+.minigame__label {
+    display: block;
+    font-family: var(--font-en);
+    font-size: 11px;
+    letter-spacing: .28em;
+    color: var(--ink-faint);
+    margin-bottom: 7px;
+}
+.minigame__title {
+    display: block;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 19px;
+    letter-spacing: .16em;
+    color: var(--ink);
+}
+.minigame__desc {
+    display: block;
+    margin-top: 10px;
+    font-family: var(--font-kr);
+    font-size: 13px;
+    line-height: 1.75;
+    color: var(--ink-soft);
+}
+.minigame__go {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 9px 24px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff;
+    font-family: var(--font-ui);
+    font-size: 13px;
+    letter-spacing: .06em;
+}

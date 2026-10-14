@@ -1,9 +1,12 @@
 // 하늘·먼 산·가까운 언덕·눈밭 + 내리는 눈. 전부 코드로 그린다.
+// drawSky 는 수평, drawLand 는 렌더러가 슬로프 각도만큼 기울인 좌표계에서 부른다 —
+// 기울이면 화면 밖이 드러나므로 땅·산 띠는 화면보다 넓게 그린다 (OVERSCAN).
 // 지형은 고정 seed 의 연출용 RNG로 만든다 — 시뮬 RNG와 섞지 않는다.
 
 import { mulberry32, randInt } from '../sim/rng.js';
 
 const TILE = 800;   // 산·언덕 띠의 반복 폭
+const OVERSCAN = 80;   // 기울인 좌표계에서 화면 오른쪽·아래를 덮으려고 더 그리는 폭
 const SKY_TOP = [196, 217, 234], SKY_BOTTOM = [240, 246, 251], SKY_BANDS = 16;
 const MOUNTAIN = { body: '#a7b9ca', shade: '#97aabc', cap: '#f4f8fb' };
 const HILL = { body: '#cbd8e4', line: '#bccbd8' };
@@ -65,13 +68,8 @@ export function createBackground(W, H, groundY) {
     hills.ctx.fillRect(x, hH - h, 1, 1);
   });
 
-  const ground = layer(W, H - groundY);
-  ground.ctx.fillStyle = GROUND.snow;
-  ground.ctx.fillRect(0, 0, W, H - groundY);
-  ground.ctx.fillStyle = GROUND.line;
-  ground.ctx.fillRect(0, 0, W, 2);
   const marks = Array.from({ length: 26 }, () => ({
-    x: randInt(rng, W), y: 6 + randInt(rng, 34), w: 2 + randInt(rng, 6),
+    x: randInt(rng, W + OVERSCAN), y: 6 + randInt(rng, 34), w: 2 + randInt(rng, 6),
   }));
 
   const flakes = Array.from({ length: 46 }, () => ({
@@ -82,18 +80,26 @@ export function createBackground(W, H, groundY) {
 
   function scroll(ctx, img, factor, distance, y) {
     const off = wrap(Math.round(distance * factor), TILE);
-    for (let x = -off; x < W; x += TILE) ctx.drawImage(img, x, y);
+    for (let x = -off - TILE; x < W + OVERSCAN; x += TILE) ctx.drawImage(img, x, y);   // 왼쪽도 한 장 더 (기울이면 드러난다)
   }
 
-  function draw(ctx, distance, timeSec) {
+  function drawSky(ctx) {
+    ctx.fillStyle = `rgb(${SKY_BOTTOM.join(',')})`;
+    ctx.fillRect(0, groundY, W, H - groundY);   // 기울인 땅이 덮지만, 틈이 생겨도 하늘색이 보이게
     ctx.drawImage(sky.c, 0, 0);
+  }
+
+  function drawLand(ctx, distance, timeSec) {
     scroll(ctx, mountains.c, 0.08, distance, groundY - 26 - mH);
     scroll(ctx, hills.c, 0.25, distance, groundY - hH);
-    ctx.drawImage(ground.c, 0, groundY);
+    ctx.fillStyle = GROUND.snow;
+    ctx.fillRect(-OVERSCAN, groundY, W + OVERSCAN * 2, H);
+    ctx.fillStyle = GROUND.line;
+    ctx.fillRect(-OVERSCAN, groundY, W + OVERSCAN * 2, 2);
 
     // 눈밭 자국은 지면과 같은 속도로 흐른다 (속도감의 주 단서)
     ctx.fillStyle = GROUND.mark;
-    for (const m of marks) ctx.fillRect(wrap(m.x - distance, W + 20) - 10, groundY + m.y, m.w, 1);
+    for (const m of marks) ctx.fillRect(wrap(m.x - distance, W + OVERSCAN) - 10, groundY + m.y, m.w, 1);
 
     ctx.fillStyle = '#ffffff';
     for (const f of flakes) {
@@ -103,5 +109,5 @@ export function createBackground(W, H, groundY) {
     }
   }
 
-  return { draw };
+  return { drawSky, drawLand };
 }

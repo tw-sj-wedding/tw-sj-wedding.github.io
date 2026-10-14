@@ -8,7 +8,8 @@ export const TICK_HZ = 60;
 export const MAX_CATCHUP_TICKS = 5;
 
 // 보이는 가로는 항상 400 (리더보드 공정성). 세로는 화면 비율에 맞춰 늘어난다.
-export const VIEW = { W: 400, PLAYER_X: 60, SPAWN_X: 460, GROUND_RATIO: 0.6 };
+// SLOPE_DEG: 그릴 때만 땅·장애물·캐릭터를 신랑 발밑 기준 시계 방향으로 기울인다 (내리막 연출). 시뮬은 수평 그대로
+export const VIEW = { W: 400, PLAYER_X: 60, SPAWN_X: 460, GROUND_RATIO: 0.6, SLOPE_DEG: 10 };
 
 // 속도(t) = min(max, start + accel × t). max 가 Infinity 면 끝없이 빨라진다 (1분 420, 3분 780, 5분 1140 px/s)
 export const SPEED = { start: 240, accel: 3, max: Infinity };   // px/s, px/s²

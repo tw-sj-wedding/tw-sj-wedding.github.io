@@ -35,11 +35,17 @@ export function createRenderer(canvas, container) {
   function draw(view) {
     ctx.setTransform(k, 0, 0, k, 0, 0);
     ctx.imageSmoothingEnabled = false;
-    bg.draw(ctx, view.distance, view.timeSec ?? view.animTick / TICK_HZ);
+    bg.drawSky(ctx);
+
+    // 여기부터는 내리막: 신랑 발밑을 축으로 기울인 좌표계. 판정은 수평 시뮬이 하므로 그림만 돈다
+    ctx.translate(VIEW.PLAYER_X, groundY);
+    ctx.rotate((VIEW.SLOPE_DEG * Math.PI) / 180);
+    ctx.translate(-VIEW.PLAYER_X, -groundY);
+    bg.drawLand(ctx, view.distance, view.timeSec ?? view.animTick / TICK_HZ);
 
     for (const o of view.obstacles) {
       const x = Math.round(o.x - view.distance);
-      if (x > VIEW.W + 8 || x + o.w < -8) continue;   // 그림이 상자보다 몇 px 넓을 수 있다
+      if (x > VIEW.W + 40 || x + o.w < -8) continue;   // 그림이 상자보다 몇 px 넓을 수 있다. 기울이면 오른쪽이 조금 더 보인다
       drawObstacle(ctx, o, x, groundY - o.y, view.animTick);
     }
 

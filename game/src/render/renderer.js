@@ -35,7 +35,7 @@ export function createRenderer(canvas, container) {
   function draw(view) {
     ctx.setTransform(k, 0, 0, k, 0, 0);
     ctx.imageSmoothingEnabled = false;
-    bg.drawSky(ctx);
+    bg.drawFar(ctx, view.distance);   // 하늘·먼 산은 수평
 
     // 여기부터는 내리막: 신랑 발밑을 축으로 기울인 좌표계. 판정은 수평 시뮬이 하므로 그림만 돈다
     ctx.translate(VIEW.PLAYER_X, groundY);

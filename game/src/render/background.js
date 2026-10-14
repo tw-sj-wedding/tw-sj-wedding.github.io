@@ -1,6 +1,6 @@
 // 하늘·먼 산·가까운 언덕·눈밭 + 내리는 눈. 전부 코드로 그린다.
-// drawSky 는 수평, drawLand 는 렌더러가 슬로프 각도만큼 기울인 좌표계에서 부른다 —
-// 기울이면 화면 밖이 드러나므로 땅·산 띠는 화면보다 넓게 그린다 (OVERSCAN).
+// drawFar(하늘·먼 산)는 수평, drawLand(언덕·눈밭·리프트·눈송이)는 렌더러가 슬로프 각도만큼 기울인 좌표계에서 부른다 —
+// 기울이면 화면 밖이 드러나므로 땅·언덕 띠는 화면보다 넓게 그린다 (OVERSCAN).
 // 지형은 고정 seed 의 연출용 RNG로 만든다 — 시뮬 RNG와 섞지 않는다.
 
 import { mulberry32, randInt } from '../sim/rng.js';
@@ -49,12 +49,14 @@ export function createBackground(W, H, groundY) {
   }
 
   const mH = 120;
-  const mountains = layer(TILE, mH);
+  // 먼 산은 수평인데 앞 언덕은 오른쪽으로 내려가 있어, 산 밑자락을 아래로 길게 이어 그 사이 하늘 틈을 막는다
+  const M_SKIRT = 110;
+  const mountains = layer(TILE, mH + M_SKIRT);
   const m = ridge(rng, TILE, 40, mH - 4, 9);
   m.heights.forEach((h, x) => {
     // 내려가는 사면(오른쪽 면)만 그늘 — 빛이 왼쪽 위에서 온다
     mountains.ctx.fillStyle = m.falling[x] ? MOUNTAIN.shade : MOUNTAIN.body;
-    mountains.ctx.fillRect(x, mH - h, 1, h);
+    mountains.ctx.fillRect(x, mH - h, 1, h + M_SKIRT);
     if (h > 70) {
       mountains.ctx.fillStyle = MOUNTAIN.cap;
       mountains.ctx.fillRect(x, mH - h, 1, Math.min(h - 70, 14));
@@ -85,14 +87,14 @@ export function createBackground(W, H, groundY) {
     for (let x = -off - TILE; x < W + OVERSCAN; x += TILE) ctx.drawImage(img, x, y);   // 왼쪽도 한 장 더 (기울이면 드러난다)
   }
 
-  function drawSky(ctx) {
+  function drawFar(ctx, distance) {
     ctx.fillStyle = `rgb(${SKY_BOTTOM.join(',')})`;
     ctx.fillRect(0, groundY, W, H - groundY);   // 기울인 땅이 덮지만, 틈이 생겨도 하늘색이 보이게
     ctx.drawImage(sky.c, 0, 0);
+    scroll(ctx, mountains.c, 0.08, distance, groundY - 26 - mH);   // 먼 산은 수평 (#52)
   }
 
   function drawLand(ctx, distance, timeSec) {
-    scroll(ctx, mountains.c, 0.08, distance, groundY - 26 - mH);
     scroll(ctx, hills.c, 0.25, distance, groundY - hH);
     ctx.fillStyle = GROUND.snow;
     ctx.fillRect(-OVERSCAN, groundY, W + OVERSCAN * 2, H);
@@ -131,5 +133,5 @@ export function createBackground(W, H, groundY) {
     }
   }
 
-  return { drawSky, drawLand };
+  return { drawFar, drawLand };
 }

@@ -85,6 +85,9 @@ test('닉네임이 거부되면 같은 토큰으로 고쳐서 다시 낼 수 있
   clock.advance(31_000);
   const bad = await call('POST', '/api/score', entry(tok, { nickname: '신랑' }));
   assert.deepEqual(bad.json, { error: 'bad_nickname', reason: 'reserved' });
+  // 게임 쪽 검사를 건너뛰고 직접 보내도 서버가 같은 규칙으로 막는다
+  const rude = await call('POST', '/api/score', entry(tok, { nickname: '씨1발' }));
+  assert.deepEqual(rude.json, { error: 'bad_nickname', reason: 'profanity' });
   assert.equal((await call('POST', '/api/score', entry(tok, { nickname: '하객2' }))).status, 200);
 });
 

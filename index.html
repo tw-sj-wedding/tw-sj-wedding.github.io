@@ -100,19 +100,6 @@
             </div>
         </div>
     </header>
-    <!-- 미니게임 진입 (게임 본체는 /game, 청첩장 로딩에 영향 없음) -->
-    <section class="minigame" data-stagger="0.1">
-        <a class="minigame__card reveal" href="./game/">
-            <span class="minigame__chars" aria-hidden="true">
-                <span class="minigame__char minigame__char--groom"></span>
-                <span class="minigame__char minigame__char--bride"></span>
-            </span>
-            <span class="minigame__label">MINI GAME</span>
-            <span class="minigame__title">SNOW RUN</span>
-            <span class="minigame__desc">신랑·신부 중 한 명을 골라<br>눈 덮인 언덕을 달려 보세요</span>
-            <span class="minigame__go">시작하기</span>
-        </a>
-    </section>
     <!-- 인사말
          'Love' 장식은 이미지(deco_03.png) 대신 실제 텍스트라 어떤 해상도에서도 선명합니다. -->
     <section id="area2" class="greeting" data-stagger="0.16">
@@ -416,6 +403,15 @@
     </div>
 </section>
     
+<!-- 미니게임 진입 (게임 본체는 /game, 청첩장 로딩에 영향 없음) -->
+    <section class="minigame">
+        <a class="minigame__btn reveal" href="./game/">
+            <span class="minigame__icon" aria-hidden="true"></span>
+            <span class="minigame__text">미니게임 <span class="minigame__name">SNOW RUN</span></span>
+            <span class="minigame__arrow" aria-hidden="true"></span>
+        </a>
+    </section>
+
 <!-- 오시는 길 타이틀 -->
     <div id="area9" class="sec-head reveal" style="background:var(--paper-warm);">
         <span class="sec-head__en">Location</span>

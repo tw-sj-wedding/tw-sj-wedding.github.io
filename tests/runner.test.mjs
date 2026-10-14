@@ -25,7 +25,7 @@ function place(s, type, dx = 0) {
 
 // ---------- 점프·숙이기 ----------
 
-test('점프는 18틱째 정점 70px, 36틱 뒤 착지한다', () => {
+test('점프는 18틱째 정점, 36틱 뒤 착지한다', () => {
   const s = bare();
   step(s, JUMP_IN);
   for (let i = 1; i < 18; i++) step(s, IDLE);
@@ -101,15 +101,33 @@ test('숙여도 낮은 새와 지상 장애물에는 부딪힌다', () => {
   }
 });
 
-test('넘어진 스키어는 제때 뛰면 넘을 수 있다', () => {
-  const s = bare();
-  const o = OBSTACLES.skierDown;
-  // 정점(18틱)에 장애물 중심이 신랑 중심을 지나도록 놓는다
-  const dx = Math.round((s.speed / TICK_HZ) * (JUMP.airTicks / 2) - o.w / 2);
-  place(s, 'skierDown', dx);
-  step(s, JUMP_IN);
-  for (let i = 0; i < JUMP.airTicks + 10; i++) step(s, IDLE);
-  assert.ok(!isOver(s), '제때 뛰었는데 넘어진 스키어에 걸림');
+test('지상 장애물과 낮은 새는 제때 뛰면 넘을 수 있다', () => {
+  for (const type of ['rock3', 'snowman', 'skierDown', 'birdLow']) {
+    const s = bare();
+    const o = OBSTACLES[type];
+    // 정점(18틱)에 장애물 중심이 신랑 중심을 지나도록 놓는다
+    const dx = Math.round((s.speed / TICK_HZ) * (JUMP.airTicks / 2) - o.w / 2);
+    place(s, type, dx);
+    step(s, JUMP_IN);
+    for (let i = 0; i < JUMP.airTicks + 10; i++) step(s, IDLE);
+    assert.ok(!isOver(s), `제때 뛰었는데 ${type} 에 걸림`);
+  }
+});
+
+test('높은 새는 어떤 속도·타이밍에 뛰어도 넘을 수 없다 (숙여야만 피한다)', () => {
+  // 정점이 새 윗면보다 높으면 빨라질수록 오히려 넘기 쉬워진다 (#43)
+  for (const tick of [800, 3600, 10800, 18000]) {   // 약 280 · 420 · 780 · 1140 px/s
+    for (let dx = 12; dx <= 700; dx++) {
+      const s = bare();
+      s.tick = tick - 1;
+      step(s, IDLE);
+      place(s, 'birdHigh', dx);
+      const bird = s.obstacles[0];
+      step(s, JUMP_IN);
+      while (!isOver(s) && bird.x + bird.w - s.distance > VIEW.PLAYER_X - 20) step(s, IDLE);
+      assert.ok(isOver(s), `tick ${tick}, ${dx}px 앞에서 뛰어 높은 새를 넘음`);
+    }
+  }
 });
 
 test('지상 장애물에 부딪히면 게임오버, 이후 step은 상태를 바꾸지 않는다', () => {

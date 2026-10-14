@@ -65,3 +65,22 @@ test('진입 버튼은 사진 갤러리 다음, 오시는 길 앞에 있다', ()
 test('진입 버튼 스타일이 있다', () => {
   assert.ok(readFileSync('css/aesthetic.css', 'utf8').includes('.minigame__btn'));
 });
+
+test('인사말에 임시 서명이 없다', () => {
+  assert.ok(!/Written by Gemini/i.test(html));
+});
+
+test('교통·주차 안내는 예식장 공식 안내다', () => {
+  for (const s of ['지하철 및 셔틀버스 이용시', '일반 버스 이용시', '자동차 이용시', '동시 950대 주차 가능', '서울상록회관']) {
+    assert.ok(html.includes(s), `${s} 없음`);
+  }
+  assert.ok(!html.includes('가까울듯'), '임시 도보 안내가 남음');
+});
+
+test('화환 보내기는 최하단 버튼 하나뿐이고 오늘의화환 주문 페이지로 간다', () => {
+  assert.ok(!html.includes('floatingBanner'), '좌측 하단 플로팅 배너가 남음');
+  assert.ok(!html.includes('waiting.html'), '임시 페이지 링크가 남음');
+  const links = html.match(/<a [^>]*class="[^"]*fl_btn[^"]*"[^>]*>/g) ?? [];
+  assert.equal(links.length, 1);
+  assert.match(links[0], /href="https:\/\/xn--wh1br48ap0ao51bua\.com\/w\/npZFSGwCKC\/order"/);
+});

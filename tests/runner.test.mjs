@@ -80,20 +80,20 @@ test('숙이기를 떼면 바로 선다', () => {
 
 // ---------- 충돌 ----------
 
-test('서 있으면 높은 새에 부딪히고, 숙이면 지나간다', () => {
+test('서 있으면 리프트에 부딪히고, 숙이면 지나간다', () => {
   const standing = bare();
-  place(standing, 'birdHigh');
+  place(standing, 'lift');
   step(standing, IDLE);
-  assert.ok(isOver(standing), '서 있는데 높은 새를 통과함');
+  assert.ok(isOver(standing), '서 있는데 리프트를 통과함');
 
   const ducking = bare();
-  place(ducking, 'birdHigh');
+  place(ducking, 'lift');
   step(ducking, DUCK_IN);
-  assert.ok(!isOver(ducking), '숙였는데 높은 새에 부딪힘');
+  assert.ok(!isOver(ducking), '숙였는데 리프트에 부딪힘');
 });
 
-test('숙여도 낮은 새와 지상 장애물에는 부딪힌다', () => {
-  for (const type of ['birdLow', 'rock1', 'snowman', 'skierDown']) {
+test('숙여도 지상 장애물에는 부딪힌다', () => {
+  for (const type of ['rock1', 'snowman', 'skierDown']) {
     const s = bare();
     place(s, type);
     step(s, DUCK_IN);
@@ -101,8 +101,8 @@ test('숙여도 낮은 새와 지상 장애물에는 부딪힌다', () => {
   }
 });
 
-test('지상 장애물과 낮은 새는 제때 뛰면 넘을 수 있다', () => {
-  for (const type of ['rock3', 'snowman', 'skierDown', 'birdLow']) {
+test('지상 장애물은 제때 뛰면 넘을 수 있다', () => {
+  for (const type of ['rock3', 'snowman', 'skierDown']) {
     const s = bare();
     const o = OBSTACLES[type];
     // 정점(18틱)에 장애물 중심이 신랑 중심을 지나도록 놓는다
@@ -114,18 +114,18 @@ test('지상 장애물과 낮은 새는 제때 뛰면 넘을 수 있다', () => 
   }
 });
 
-test('높은 새는 어떤 속도·타이밍에 뛰어도 넘을 수 없다 (숙여야만 피한다)', () => {
+test('리프트는 어떤 속도·타이밍에 뛰어도 넘을 수 없다 (숙여야만 피한다)', () => {
   // 정점이 새 윗면보다 높으면 빨라질수록 오히려 넘기 쉬워진다 (#43)
   for (const tick of [800, 3600, 10800, 18000]) {   // 약 280 · 420 · 780 · 1140 px/s
     for (let dx = 12; dx <= 700; dx++) {
       const s = bare();
       s.tick = tick - 1;
       step(s, IDLE);
-      place(s, 'birdHigh', dx);
-      const bird = s.obstacles[0];
+      place(s, 'lift', dx);
+      const lift = s.obstacles[0];
       step(s, JUMP_IN);
-      while (!isOver(s) && bird.x + bird.w - s.distance > VIEW.PLAYER_X - 20) step(s, IDLE);
-      assert.ok(isOver(s), `tick ${tick}, ${dx}px 앞에서 뛰어 높은 새를 넘음`);
+      while (!isOver(s) && lift.x + lift.w - s.distance > VIEW.PLAYER_X - 20) step(s, IDLE);
+      assert.ok(isOver(s), `tick ${tick}, ${dx}px 앞에서 뛰어 리프트를 넘음`);
     }
   }
 });
@@ -202,22 +202,22 @@ test('연속 장애물 간격은 항상 도착 시점 기준 최소 간격 이�
   }
 });
 
-test('새는 150점부터 나온다', () => {
-  // 처음 몇 판에서 새를 일찍 보여 주려고 300 → 150점으로 앞당겼다 (#24)
+test('리프트는 150점부터 나온다', () => {
+  // 처음 몇 판에서 머리 높이 장애물을 일찍 보여 주려고 300 → 150점으로 앞당겼다 (#24)
   let earliest = Infinity;
   for (let seed = 1; seed <= 30; seed++) {
     runWithBot(seed, 60 * TICK_HZ, (kind, s, o) => {
-      if (kind === 'spawn' && o.type.startsWith('bird')) earliest = Math.min(earliest, getScore(s));
+      if (kind === 'spawn' && o.type === 'lift') earliest = Math.min(earliest, getScore(s));
     });
   }
-  assert.ok(earliest >= 150 && earliest < 300, `가장 이른 새가 ${earliest}점`);
+  assert.ok(earliest >= 150 && earliest < 300, `가장 이른 리프트가 ${earliest}점`);
 });
 
-test('등장 점수 전에는 새가 나오지 않는다', () => {
+test('등장 점수 전에는 리프트가 나오지 않는다', () => {
   for (let seed = 1; seed <= 30; seed++) {
     runWithBot(seed, 60 * TICK_HZ, (kind, s, o) => {
-      if (kind === 'spawn' && o.type.startsWith('bird')) {
-        assert.ok(getScore(s) >= SPAWN.birdFromScore, `seed ${seed}: ${getScore(s)}점에 새`);
+      if (kind === 'spawn' && o.type === 'lift') {
+        assert.ok(getScore(s) >= SPAWN.liftFromScore, `seed ${seed}: ${getScore(s)}점에 리프트`);
       }
     });
   }

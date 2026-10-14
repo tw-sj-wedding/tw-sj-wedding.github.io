@@ -21,7 +21,7 @@ const OBSTACLE_SOURCES = [
   { type: 'skierDown', file: 'obstacles/skier-down.png', frames: 2, scale: 3 },
 ];
 
-function preview(sheet, hitbox, birdHighY) {
+function preview(sheet, hitbox, liftY) {
   const S = 4;
   const W = sheet.width * S, H = sheet.height * S;
   const out = new Uint8Array(W * H * 4);
@@ -49,8 +49,8 @@ function preview(sheet, hitbox, birdHighY) {
       const bx0 = fx + (FRAME_SIZE / 2 - box.w / 2) * S, bx1 = bx0 + box.w * S - 1;
       const by1 = fy + FRAME_SIZE * S - 1, by0 = by1 - box.h * S + 1;
       rect(bx0, by0, bx1, by1, [220, 40, 40]);
-      if (name.startsWith('duck') && birdHighY != null) {
-        const ly = fy + (FRAME_SIZE - birdHighY) * S;
+      if (name.startsWith('duck') && liftY != null) {
+        const ly = fy + (FRAME_SIZE - liftY) * S;
         for (let x = fx; x < fx + FRAME_SIZE * S; x += 2) put(x, ly, [40, 90, 220]);
       }
     });
@@ -93,12 +93,12 @@ async function main() {
   writeFileSync(path.join(ROOT, 'game/assets/sprites.png'), png);
   writeFileSync(path.join(ROOT, 'game/assets/sprites.json'), `${JSON.stringify(json, null, 2)}\n`);
 
-  let hitbox = null, birdHighY = null, obstacles = null;
+  let hitbox = null, liftY = null, obstacles = null;
   try {
     const config = await import('../game/src/config.js');
     hitbox = config.HITBOX ?? null;
     obstacles = config.OBSTACLES ?? null;
-    birdHighY = config.OBSTACLES?.birdHigh?.y ?? null;
+    liftY = config.OBSTACLES?.lift?.y ?? null;
   } catch { /* 설정이 없어도 시트는 만든다 */ }
 
   const obs = buildObstacleSheet(OBSTACLE_SOURCES.map((o) => ({
@@ -113,7 +113,7 @@ async function main() {
   }
   console.log(`장애물 미리보기: ${obsPreviewPath}`);
   const previewPath = path.join(tmpdir(), 'tw-sj-sprites-preview.png');
-  writeFileSync(previewPath, preview(sheet, hitbox, birdHighY));
+  writeFileSync(previewPath, preview(sheet, hitbox, liftY));
 
   let warned = false;
   for (const r of report) {

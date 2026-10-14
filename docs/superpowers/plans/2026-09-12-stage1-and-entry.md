@@ -1,5 +1,7 @@
 # Stage 1 미니게임 + 청첩장 진입 버튼 구현 계획
 
+> **대체됨 (2026-10-14):** 엔드리스 스노보드로 재설계 — `docs/superpowers/specs/2026-10-14-endless-snowboard-design.md` 참고. 이 문서는 이력 보존용이다.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 하객이 청첩장 최상단 카드를 눌러 게임에 들어가고, 신랑이 꽃다발과 반지를 들고 설원을 내려가 신부에게 도착한 뒤 청첩장으로 돌아온다. 점수 없음, 서버 없음.

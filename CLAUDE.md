@@ -1,8 +1,7 @@
 # 청첩장 미니게임
 
-- 전체 스펙: `HANDOFF.md` · 결정 기록: `docs/DECISIONS.md`
-- 현재 범위 설계: `docs/superpowers/specs/2026-09-12-stage1-and-entry-design.md`
-- 실행 계획: `docs/superpowers/plans/2026-09-12-stage1-and-entry.md`
+- 설계: `docs/superpowers/specs/2026-10-14-endless-snowboard-design.md` · 결정 기록: `docs/DECISIONS.md`
+  - `HANDOFF.md`와 2026-09-12 스펙·계획은 이 설계로 **대체됨** (이력 보존용)
 - 배포: https://tw-sj-wedding.github.io/ (저장소 루트 서빙, GitHub Pages). 게임은 `/game/`.
 - 공개 저장소다. 토큰·시크릿·`.env`·`.dev.vars`를 커밋하지 않는다.
 - 게임 코드는 `/game` 에만 쓴다. 청첩장 페이지는 진입 카드 블록 외에 수정하지 않는다.
@@ -16,12 +15,12 @@
 
 ## 게임 규칙
 
-- Canvas 2D, 논리 180x300 픽셀아트, 게임 엔진 없음. UI 텍스트는 HTML 오버레이.
-- **Stage 1에 점수는 없다.** 수집품·점수 공식·기록 표시를 만들지 않는다.
-  진행도는 눈금 없는 진행 바로만 보여준다. 점수와 리더보드는 Stage 2 전용.
-- 고정 60Hz 틱. `game/src/sim/` 아래는 결정론 순수 모듈:
-  `Math.random`/`Date`/`performance`/DOM/초월함수 금지, 정수 고정소수점(FP=256),
-  시뮬 RNG와 연출 RNG 분리.
+- 옆에서 보는 엔드리스 스노보드 러너 (크롬 공룡 게임 형식). 점프·숙이기 버튼 2개.
+- Canvas 2D, 논리 가로 400 픽셀아트(정수 배율), 게임 엔진 없음. UI·버튼은 HTML 오버레이.
+- **그림은 손으로 고치지 않는다.** Gemini 원본(`game/assets/src/`)을 `scripts/build-sprites.mjs`로
+  변환만 한다. 어색하면 원본을 다시 뽑는다.
+- 고정 60Hz 틱. `game/src/sim/` 아래는 순수 모듈: `Math.random`/`Date`/`performance`/DOM 금지,
+  seed 기반 RNG만 사용 (테스트 봇 재현용).
 - 튜닝 숫자는 전부 `game/src/config.js`에 둔다.
 
 ## 작업 기록

@@ -1,5 +1,7 @@
 # Stage 1 + 청첩장 진입 버튼 설계 (M0~M2)
 
+> **대체됨 (2026-10-14):** 엔드리스 스노보드로 재설계 — `docs/superpowers/specs/2026-10-14-endless-snowboard-design.md` 참고. 이 문서는 이력 보존용이다.
+
 > 2026-09-12 · 상위 스펙: `HANDOFF.md` · 결정 기록: `docs/DECISIONS.md`
 > 이 문서는 `HANDOFF.md` 전체 스펙 중 **M0~M2만** 다룬다. Stage 2·리더보드·Worker는 범위 밖이다.
 

@@ -11,9 +11,15 @@ npm run dev          # http://localhost:8123
 # 게임: http://localhost:8123/game/dev.html?api=http://localhost:8787
 ```
 
-## 처음 배포 (한 번만)
+배포됨: https://tw-sj-wedding-leaderboard.tw-sj-wedding.workers.dev (2026-10-14).
 
-1. Cloudflare 계정을 만든다 (무료, 카드 불필요). 착수 시 무료 한도를 공식 문서로 다시 확인한다.
+## 처음 배포 (한 번만, 이미 끝남 — 기록용)
+
+1. Cloudflare 계정을 만들고 **가입 이메일을 인증한다** (안 하면 `wrangler deploy` 가 code 10034 로
+   거부). 무료, 카드 불필요. 착수 시 무료 한도를 공식 문서로 다시 확인한다.
+   - 새 계정엔 `workers.dev` 서브도메인이 없다. 대시보드 Workers 화면을 처음 열면 자동으로 만들어지는데
+     이름이 마음대로 정해지므로, 그 전에 API 로 정했다 (`PUT /accounts/{id}/workers/subdomain`,
+     `{"subdomain":"tw-sj-wedding"}`, 인증은 `npx wrangler auth token`).
 2. 로그인과 DB 생성:
    ```bash
    cd worker
@@ -27,7 +33,8 @@ npm run dev          # http://localhost:8123
    node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))" | npx wrangler secret put HMAC_SECRET
    ```
    서명 키는 저장소에 절대 남기지 않는다 (공개 저장소).
-4. 배포: `npx wrangler deploy` → `https://tw-sj-wedding-leaderboard.<계정>.workers.dev` 가 나온다.
+4. 배포: `npx wrangler deploy` → `https://tw-sj-wedding-leaderboard.tw-sj-wedding.workers.dev`.
+   서명 키를 넣기 전에는 모든 요청에 `500 misconfigured` 로 닫혀 있다.
 5. 게임에 연결: `game/src/config.js` 의 `API_BASE` 에 그 주소를 넣고 저장소 루트에서
    `npm test && npm run build` 후 커밋·푸시.
 

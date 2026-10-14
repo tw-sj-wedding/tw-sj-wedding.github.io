@@ -43,4 +43,4 @@ export const OBSTACLES = {
 export const ANIM = { frameTicks: 8, overDelayMs: 700, countdownMs: 700 };
 
 // 리더보드 Worker 주소. 비어 있으면 리더보드 UI를 숨긴다 (Worker 배포 전에도 게임은 완전히 동작).
-export const API_BASE = '';
+export const API_BASE = 'https://tw-sj-wedding-leaderboard.tw-sj-wedding.workers.dev';

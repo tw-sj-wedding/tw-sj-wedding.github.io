@@ -6,8 +6,8 @@ compatibility_date = "2026-09-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "tw-sj-wedding-leaderboard"
-# `npx wrangler d1 create tw-sj-wedding-leaderboard` 가 출력하는 database_id 로 바꾼다 (공개해도 되는 값)
-database_id = "00000000-0000-0000-0000-000000000000"
+# `npx wrangler d1 create tw-sj-wedding-leaderboard` 가 출력한 값 (공개해도 되는 값)
+database_id = "dcec0653-19c2-4954-8275-3d971a24e465"
 migrations_dir = "migrations"
 
 [vars]

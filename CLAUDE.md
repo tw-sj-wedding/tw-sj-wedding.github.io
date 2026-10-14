@@ -72,6 +72,8 @@
 - Worker: `worker/` (Cloudflare Workers + D1). 배포·운영 명령은 `worker/README.md`.
 - 로컬: `npm run dev:api` (같은 Worker 코드를 `node:sqlite` 로 실행, 포트 8787) 후
   `http://localhost:8123/game/dev.html?api=http://localhost:8787`
-- `game/src/config.js` 의 `API_BASE` 가 비어 있으면 리더보드 UI는 숨겨진다.
+- 배포 주소: https://tw-sj-wedding-leaderboard.tw-sj-wedding.workers.dev (`game/src/config.js` 의 `API_BASE`).
+  비우면 리더보드 UI는 숨겨진다. 이 Worker 는 `https://tw-sj-wedding.github.io` 출처만 받으므로
+  로컬 개발은 위의 `dev:api` 로 한다.
 - 점수 공식(`SPEED`·`SCORE`·`TICK_HZ`)을 바꾸면 `GAME_VERSION` 을 올리고 Worker 의
   `CLIENT_VERSIONS` 에 추가해 다시 배포한다. 공식은 `game/src/shared/scoring.js` 를 서버와 공유한다.

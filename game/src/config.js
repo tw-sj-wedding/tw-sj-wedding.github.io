@@ -1,65 +1,44 @@
-// 튜닝 상수는 전부 여기 모은다. 다른 파일에 숫자 리터럴을 두지 않는다.
+// 튜닝 수치는 전부 여기에 둔다. 실기기에서 해보고 이 파일만 고친다.
+// 시뮬·서버 검증이 이 값을 함께 쓰므로, 점수에 영향을 주는 값(SPEED, SCORE, TICK_HZ)을 바꾸면
+// GAME_VERSION 도 올리고 Worker 의 CLIENT_VERSIONS 를 갱신해야 한다.
 
-export const GAME_VERSION = '1.0.0';
+export const GAME_VERSION = '2.0.0';
 
-export const FP = 256;      // 1 논리 px = 256 고정소수점 단위
 export const TICK_HZ = 60;
 export const MAX_CATCHUP_TICKS = 5;
 
-export const VIEW = {
-  W: 180,        // 논리 가로
-  H: 300,        // 논리 세로
-  PLAYER_Y: 70,  // 신랑이 그려지는 화면 y (고정)
-};
+// 보이는 가로는 항상 400 (리더보드 공정성). 세로는 화면 비율에 맞춰 늘어난다.
+export const VIEW = { W: 400, PLAYER_X: 60, SPAWN_X: 460, GROUND_RATIO: 0.6 };
 
-export const STAGE1 = {
-  goalM: 640,
-  pxPerM: 4,
+export const SPEED = { start: 240, accel: 2.4, max: 520 };   // px/s, px/s² — 약 2분 뒤 최대
+export const SCORE = { pxPerPoint: 24, flashEvery: 100 };
 
-  scrollStartPxS: 78,
-  scrollMaxPxS: 138,
+// 점프는 높이 고정 포물선. 18틱째 정점 70px, 36틱(0.6초)에 착지.
+export const JUMP = { apex: 70, airTicks: 36 };
 
-  lives: 1,
-  hitInvincibleTicks: 78,   // 1.3초
-  hitSlowNum: 55,           // 무적 중 속도 x0.55
-  hitSlowDen: 100,
-  jumpTicks: 48,            // 점프 체공 0.8초
+// 그림보다 작게 잡아 억울한 판정을 줄인다. 숙인 그림의 머리는 약 43px — 높은 새 밑면(46)보다 낮다.
+export const HITBOX = { stand: { w: 20, h: 48 }, duck: { w: 20, h: 34 } };
 
-  latMaxPxS: 165,           // 횡이동 최대 속도. 스크롤이 빨라지면 피할 시간이 줄어
-                            // 이 값이 병목이 된다 — 스크롤 속도와 같이 움직여야 한다
-  playerW: 14,
-  playerH: 17,
-
-  rowGapMin: 44,
-  rowGapMax: 72,
-  sameRowMinGap: 46,        // 같은 줄 두 장애물의 x 최소 간격
-  sameRowTries: 8,          // 간격 확보 재시도 횟수 (초과 시 1개만 배치)
-  twoItemPctStart: 15,      // 한 줄에 2개일 확률 (시작)
-  twoItemPctEnd: 55,        // 한 줄에 2개일 확률 (끝)
-  jumpPadPct: 20,           // 줄당 점프대 확률
-  skierPct: 10,             // 줄당 스키어 확률 (점프대 다음으로 굴림)
-  skierMinPxS: 22,          // 스키어 횡속도 하한
-  skierMaxPxS: 45,          // 스키어 횡속도 상한
-  skierDescentMinPct: 20,   // 스키어 하강 속도 = 스폰 시점 신랑 속도의 이 비율
-  skierDescentMaxPct: 35,   // 절대값으로 박으면 후반에 신랑을 앞질러 추월이 깨진다
-
-  spawnStopBeforeM: 80,     // 도착 80m 전부터 스폰 중지
-  spawnAheadPx: 240,        // 화면 아래로 이만큼 앞서 생성
-  despawnBehindPx: 90,      // 화면 위로 이만큼 지나가면 제거
+export const SPAWN = {
+  firstGapSec: 1.6,      // 시작 후 이 시간 동안은 화면에 장애물이 들어오지 않는다
+  reactionSec: 0.25,     // 장애물 사이 최소 간격 = 도착 시점 속도 × (체공 + 이 값)
+  extraGapRatio: 0.8,    // 최소 간격 위로 최대 이 비율만큼 무작위로 더 벌린다
+  birdFromScore: 300,
+  birdPct: 20,
+  ground: [['rock1', 30], ['rock2', 22], ['rock3', 14], ['snowman', 34]],
 };
 
 export const OBSTACLES = {
-  tree:    { w: 12, h: 13 },
-  rock:    { w: 10, h: 6 },
-  snowman: { w: 10, h: 13 },
-  skier:   { w: 12, h: 14 },
-  jumppad: { w: 16, h: 4 },
+  rock1:    { w: 14, h: 12, y: 0 },
+  rock2:    { w: 26, h: 12, y: 0 },
+  rock3:    { w: 38, h: 12, y: 0 },
+  snowman:  { w: 20, h: 30, y: 0 },
+  birdLow:  { w: 22, h: 14, y: 6 },    // 점프로 넘는다
+  birdHigh: { w: 22, h: 14, y: 46 },   // 숙여서 피한다
 };
 
-export const OBSTACLE_TYPES = ['tree', 'rock', 'snowman'];
+// 애니메이션 (렌더 전용)
+export const ANIM = { frameTicks: 8, overDelayMs: 700, countdownMs: 700 };
 
-// 파생값
-export const TOTAL_PX = STAGE1.goalM * STAGE1.pxPerM;                            // 3200
-export const SPAWN_STOP_PX = TOTAL_PX - STAGE1.spawnStopBeforeM * STAGE1.pxPerM; // 2880
-export const TARGET_Q_MAX = (VIEW.W - STAGE1.playerW) * 4;                       // 664
-export const TARGET_Q_CENTER = TARGET_Q_MAX >> 1;                                // 332
+// 리더보드 Worker 주소. 비어 있으면 리더보드 UI를 숨긴다 (Worker 배포 전에도 게임은 완전히 동작).
+export const API_BASE = '';

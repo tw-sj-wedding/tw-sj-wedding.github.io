@@ -59,6 +59,21 @@ npx wrangler d1 execute tw-sj-wedding-leaderboard --remote --command "DELETE FRO
 
 관리용 공개 API 는 만들지 않는다. 수정·삭제는 위 명령으로만 한다.
 
+## 신랑·신부 비밀 닉네임
+
+`김태웅`·`박수진`은 예약어라 하객은 쓸 수 없다. 두 사람은 시크릿 `VIP_NICKNAMES` 에 적힌
+비밀 닉네임으로 등록하면 표시 이름으로 저장된다 (다시 올려도 이름이 유지된다).
+값은 저장소에 적지 않는다 — 공개 저장소라 적는 순간 누구나 사칭할 수 있다.
+
+```bash
+cd worker
+# 형식: {"비밀닉네임":"표시이름", ...}. 실제 값은 신랑에게 묻는다
+printf %s '{"비밀닉네임1":"김태웅","비밀닉네임2":"박수진"}' | npx wrangler secret put VIP_NICKNAMES
+npx wrangler secret list          # 이름만 보인다. 값은 다시 볼 수 없으니 바꿀 땐 통째로 다시 넣는다
+```
+
+로컬에서 시험: `VIP_NICKNAMES='{"시험코드":"김태웅"}' npm run dev:api`
+
 ## 검증 수준
 
 경품이 없어서 기본 수준만 한다 (DECISIONS #32): 서명 토큰·1회 사용, 토큰 발급 후 흐른 시간 대비

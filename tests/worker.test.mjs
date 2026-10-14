@@ -219,3 +219,33 @@ test('서명 키가 설정되지 않았으면 토큰을 발급하지 않는다 (
     assert.equal(r.json.token, undefined);
   }
 });
+
+test('시크릿의 비밀 닉네임으로 내면 예약 이름으로 저장된다 (값은 저장소에 없음)', async () => {
+  const { call, token, entry, clock, env } = setup();
+  env.VIP_NICKNAMES = JSON.stringify({ 시험용신랑코드: '김태웅', 시험용신부코드: '박수진' });
+  const submit = async (playerId, nickname, ticks = 1800) => {
+    const tok = await token();
+    clock.advance(ticks * 20);
+    return call('POST', '/api/score', entry(tok, { playerId, nickname, durationTicks: ticks, score: scoreAtTick(ticks) }));
+  };
+  assert.equal((await submit('aaaaaaaaaaaaaaaa', '시험용신랑코드')).status, 200);
+  assert.equal((await submit('bbbbbbbbbbbbbbbb', ' 시험용신부코드 ', 1200)).status, 200);   // 앞뒤 공백은 무시
+  // 더 높은 점수를 다시 올려도 이름이 유지된다
+  assert.equal((await submit('aaaaaaaaaaaaaaaa', '시험용신랑코드', 2400)).json.improved, true);
+  const names = (await call('GET', '/api/leaderboard')).json.top.map((r) => r.nickname);
+  assert.deepEqual(names, ['김태웅', '박수진']);
+
+  // 예약 이름을 직접 쓰는 건 여전히 막힌다
+  const direct = await submit('cccccccccccccccc', '김태웅');
+  assert.deepEqual(direct.json, { error: 'bad_nickname', reason: 'reserved' });
+});
+
+test('VIP_NICKNAMES 가 깨진 JSON 이면 무시하고 평소 규칙으로 판정한다', async () => {
+  const { call, token, entry, clock, env } = setup();
+  env.VIP_NICKNAMES = '{시험용신랑코드: 김태웅';
+  const tok = await token();
+  clock.advance(31_000);
+  const r = await call('POST', '/api/score', entry(tok, { nickname: '시험용신랑코드' }));
+  assert.equal(r.status, 200);
+  assert.equal((await call('GET', '/api/leaderboard')).json.top[0].nickname, '시험용신랑코드');
+});

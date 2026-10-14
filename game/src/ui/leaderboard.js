@@ -18,7 +18,8 @@ const MESSAGES = {
   old_client: '새 버전이 있어요. 페이지를 새로고침해 주세요',
 };
 
-// 화려하게 보여 줄 닉네임 → 배지. 예약어(shared/nickname.js)라 하객은 못 쓰고 관리자가 D1 에서만 붙인다
+// 화려하게 보여 줄 닉네임 → 배지. 예약어(shared/nickname.js)라 하객은 못 쓰고, 두 사람이 Worker 시크릿의
+// 비밀 닉네임(VIP_NICKNAMES)으로 등록하거나 관리자가 D1 에서 붙일 때만 나온다
 const VIP = new Map([['김태웅', '신랑'], ['박수진', '신부']]);
 
 const MINI_TOP = 5;

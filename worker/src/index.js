@@ -52,6 +52,22 @@ async function rateLimit(env, request, now) {
   await env.DB.prepare('DELETE FROM submissions WHERE at < ?').bind(now - 3600_000).run();
 }
 
+// 신랑·신부 전용 비밀 닉네임 → 순위표에 보일 이름(예약어 김태웅·박수진). 공개 저장소라 값은 코드에 적지 않고
+// Worker 시크릿에만 둔다: {"비밀닉네임":"표시이름"} 을 `npx wrangler secret put VIP_NICKNAMES`
+function vipNickname(env, raw) {
+  if (typeof raw !== 'string' || !env.VIP_NICKNAMES) return null;
+  let map;
+  try {
+    map = JSON.parse(env.VIP_NICKNAMES);
+  } catch {
+    console.error('VIP_NICKNAMES 가 JSON 이 아닙니다');
+    return null;
+  }
+  const key = raw.normalize('NFC').trim();
+  const name = map && typeof map === 'object' && Object.hasOwn(map, key) ? map[key] : null;
+  return typeof name === 'string' && name ? name : null;
+}
+
 async function rankOf(env, score, updatedAt) {
   const above = await env.DB.prepare(
     'SELECT COUNT(*) AS c FROM scores WHERE score > ?1 OR (score = ?1 AND updated_at < ?2)',
@@ -83,7 +99,8 @@ async function handleScore(env, request, now) {
   if (b.durationTicks / TICK_HZ > (now - token.iat) / 1000 + TIME_SLACK_SEC) throw new HttpError(400, 'too_fast');
   if (b.score > scoreAtTick(b.durationTicks)) throw new HttpError(400, 'impossible');
 
-  const nick = validateNickname(b.nickname);
+  const vip = vipNickname(env, b.nickname);
+  const nick = vip ? { ok: true, value: vip } : validateNickname(b.nickname);
   if (!nick.ok) throw new HttpError(400, 'bad_nickname', { reason: nick.reason });
 
   // 모든 검증을 통과한 뒤에만 토큰을 소모한다 — 닉네임이 거부돼도 고쳐서 다시 낼 수 있게

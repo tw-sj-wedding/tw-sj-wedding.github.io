@@ -19,7 +19,10 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export function createDevApi({ dbPath = ':memory:' } = {}) {
   const db = createD1(dbPath);
   db.exec(readFileSync(path.join(ROOT, 'worker/migrations/0001_init.sql'), 'utf8'));
-  const env = { DB: db, HMAC_SECRET: 'dev-secret-not-for-production', ALLOWED_ORIGINS: '*', CLIENT_VERSIONS: GAME_VERSION };
+  const env = {
+    DB: db, HMAC_SECRET: 'dev-secret-not-for-production', ALLOWED_ORIGINS: '*', CLIENT_VERSIONS: GAME_VERSION,
+    VIP_NICKNAMES: process.env.VIP_NICKNAMES,   // 신랑·신부 비밀 닉네임 시험용 (worker/README.md)
+  };
 
   return createServer(async (req, res) => {
     const chunks = [];

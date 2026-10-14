@@ -61,7 +61,11 @@
 - 바꾸려면 원본을 덮어쓰고 `npm run sprites` → `game/assets/sprites.png/json` 이 다시 생긴다.
   미리보기(4배, 충돌 상자 표시) 경로가 출력되니 열어서 확인한다. 칸 크기가 3.75±0.1 을
   벗어나면 경고 — 같은 화면에서 픽셀 밀도가 달라 보인다.
-- 장애물은 아직 코드로 그린 임시 그림(`game/src/render/obstacles.js`, 크기 = 충돌 상자).
+- 장애물 원본: `game/assets/src/obstacles/*.png` (마젠타 배경, 한 장에 변형 여러 개) →
+  `npm run sprites` 가 `game/assets/obstacles.png/json` 을 만든다. 목록·축소 배율은
+  `scripts/build-sprites.mjs` 의 `OBSTACLE_SOURCES`. 원본 픽셀이 캐릭터보다 굵으면 원본 격자 기준
+  **정수 배**로만 줄인다 (보간 금지). 시트 그림은 충돌 상자보다 작으면 안 된다 (테스트가 막는다).
+- 그림이 없는 장애물(바위·눈사람·새)은 `game/src/render/obstacles.js` 의 코드 임시 그림(크기 = 충돌 상자).
 
 ## 리더보드
 

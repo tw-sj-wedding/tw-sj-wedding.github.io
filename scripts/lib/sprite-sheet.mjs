@@ -347,3 +347,87 @@ export function buildSheet(sources) {
   const json = { frame: size, frames: FRAME_NAMES, rows, pitch };
   return { png: encodePng({ width: sheetW, height: sheetH, data: sheet }), json, report, sheet: { width: sheetW, height: sheetH, data: sheet } };
 }
+
+// ---------- 장애물 ----------
+
+// 원본 격자 기준 정수 배 축소. 블록마다 가장 많은 색을 고르고(새 색을 만들지 않는다),
+// 블록의 절반 이상이 비어 있으면 투명. Gemini 그림의 픽셀 밀도를 캐릭터에 맞추는 용도 —
+// 보간(흐릿한 축소)이 아니라 블록 단위로 다시 찍는 것이라 픽셀아트로 남는다.
+export function downscaleFrame(frame, factor) {
+  const w = Math.ceil(frame.w / factor), h = Math.ceil(frame.h / factor);
+  const data = new Uint8Array(w * h * 4);
+  for (let by = 0; by < h; by++) {
+    for (let bx = 0; bx < w; bx++) {
+      const counts = new Map();
+      let total = 0, opaque = 0;
+      for (let y = by * factor; y < Math.min(frame.h, (by + 1) * factor); y++) {
+        for (let x = bx * factor; x < Math.min(frame.w, (bx + 1) * factor); x++) {
+          total++;
+          const i = (y * frame.w + x) * 4;
+          if (!frame.data[i + 3]) continue;
+          opaque++;
+          const key = (frame.data[i] << 16) | (frame.data[i + 1] << 8) | frame.data[i + 2];
+          counts.set(key, (counts.get(key) ?? 0) + 1);
+        }
+      }
+      if (opaque * 2 <= total) continue;
+      let best = -1, bestN = 0;
+      for (const [k, n] of counts) if (n > bestN) { best = k; bestN = n; }
+      data.set([(best >> 16) & 255, (best >> 8) & 255, best & 255, 255], (by * w + bx) * 4);
+    }
+  }
+  return trimFrame({ x: 0, y: 0, w, h, data });
+}
+
+// 축소 뒤 가장자리에 생긴 빈 줄·열을 잘라 낸다
+function trimFrame(f) {
+  let x0 = f.w, y0 = f.h, x1 = -1, y1 = -1;
+  for (let y = 0; y < f.h; y++) {
+    for (let x = 0; x < f.w; x++) {
+      if (!f.data[(y * f.w + x) * 4 + 3]) continue;
+      if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+    }
+  }
+  if (x1 < 0) return f;
+  const w = x1 - x0 + 1, h = y1 - y0 + 1;
+  const data = new Uint8Array(w * h * 4);
+  for (let y = 0; y < h; y++) data.set(f.data.subarray(((y + y0) * f.w + x0) * 4, ((y + y0) * f.w + x0 + w) * 4), y * w * 4);
+  return { x: 0, y: 0, w, h, data };
+}
+
+// sources: [{ type, img, frames(개수), scale(정수 축소 배율) }]
+// 시트에는 프레임을 가로로 자기 크기대로 늘어놓고(바닥 정렬), JSON 에 위치를 적는다.
+export function buildObstacleSheet(sources) {
+  const placed = [];
+  const report = [];
+  for (const { type, img, frames: count, scale = 1 } of sources) {
+    const grid = detectGrid(img);
+    const frames = splitFrames(quantize(toCells(img, grid)), count)
+      .map((f) => (scale > 1 ? downscaleFrame(f, scale) : f));
+    for (const f of frames) placed.push({ type, f });
+    report.push({
+      type,
+      pitch: Number(((grid.pitchX + grid.pitchY) / 2).toFixed(4)),
+      scale,
+      frames: frames.map((f) => ({ w: f.w, h: f.h })),
+    });
+  }
+  const gap = 1;
+  const width = placed.reduce((s, p) => s + p.f.w + gap, 0) - gap;
+  const height = Math.max(...placed.map((p) => p.f.h));
+  const sheet = new Uint8Array(width * height * 4);
+  const types = {};
+  let cx = 0;
+  for (const { type, f } of placed) {
+    const y = height - f.h;
+    for (let r = 0; r < f.h; r++) sheet.set(f.data.subarray(r * f.w * 4, (r + 1) * f.w * 4), ((y + r) * width + cx) * 4);
+    (types[type] ??= []).push({ x: cx, y, w: f.w, h: f.h });
+    cx += f.w + gap;
+  }
+  return {
+    png: encodePng({ width, height, data: sheet }),
+    json: { types },
+    report,
+    sheet: { width, height, data: sheet },
+  };
+}

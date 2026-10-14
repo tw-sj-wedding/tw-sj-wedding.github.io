@@ -9,12 +9,17 @@ import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { decodePng, encodePng } from './lib/png.mjs';
-import { buildSheet, FRAME_NAMES, FRAME_SIZE } from './lib/sprite-sheet.mjs';
+import { buildSheet, buildObstacleSheet, FRAME_NAMES, FRAME_SIZE } from './lib/sprite-sheet.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CHARACTERS = ['groom', 'bride'];
 const PITCH_REF = 3.75;      // 첫 생성본의 칸 크기. 다른 그림도 이 밀도여야 한 화면에서 어울린다
 const PITCH_TOLERANCE = 0.1;
+// 장애물 원본. scale 은 원본 격자 기준 정수 축소 배율 — 캐릭터(서 있는 키 55칸)와 밀도를 맞춘다.
+// 넘어진 스키어 원본은 칸 6.46px·118x57칸이라 1/3 로 줄인다 (DECISIONS #46).
+const OBSTACLE_SOURCES = [
+  { type: 'skierDown', file: 'obstacles/skier-down.png', frames: 2, scale: 3 },
+];
 
 function preview(sheet, hitbox, birdHighY) {
   const S = 4;
@@ -53,6 +58,31 @@ function preview(sheet, hitbox, birdHighY) {
   return encodePng({ width: W, height: H, data: out });
 }
 
+function obstaclePreview(sheet, json, obstacles) {
+  const S = 8, pad = 4;
+  const W = (sheet.width + pad * 2) * S, H = (sheet.height + pad * 2) * S;
+  const out = new Uint8Array(W * H * 4);
+  const put = (x, y, c) => { if (x >= 0 && y >= 0 && x < W && y < H) out.set([...c, 255], (y * W + x) * 4); };
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const sx = Math.floor(x / S) - pad, sy = Math.floor(y / S) - pad;
+    const i = (sy * sheet.width + sx) * 4;
+    const inside = sx >= 0 && sy >= 0 && sx < sheet.width && sy < sheet.height;
+    put(x, y, inside && sheet.data[i + 3] ? [sheet.data[i], sheet.data[i + 1], sheet.data[i + 2]] : [248, 251, 253]);
+  }
+  // 충돌 상자: 그림 가운데·바닥에 맞춰 그린다 (렌더러와 같은 규칙)
+  for (const [type, frames] of Object.entries(json.types)) {
+    const box = obstacles?.[type];
+    if (!box) continue;
+    for (const f of frames) {
+      const x0 = (pad + f.x + Math.round((f.w - box.w) / 2)) * S, x1 = x0 + box.w * S - 1;
+      const y1 = (pad + sheet.height) * S - 1, y0 = y1 - box.h * S + 1;
+      for (let x = x0; x <= x1; x++) { put(x, y0, [220, 40, 40]); put(x, y1, [220, 40, 40]); }
+      for (let y = y0; y <= y1; y++) { put(x0, y, [220, 40, 40]); put(x1, y, [220, 40, 40]); }
+    }
+  }
+  return encodePng({ width: W, height: H, data: out });
+}
+
 async function main() {
   const sources = CHARACTERS.map((name) => ({
     name,
@@ -63,12 +93,25 @@ async function main() {
   writeFileSync(path.join(ROOT, 'game/assets/sprites.png'), png);
   writeFileSync(path.join(ROOT, 'game/assets/sprites.json'), `${JSON.stringify(json, null, 2)}\n`);
 
-  let hitbox = null, birdHighY = null;
+  let hitbox = null, birdHighY = null, obstacles = null;
   try {
     const config = await import('../game/src/config.js');
     hitbox = config.HITBOX ?? null;
+    obstacles = config.OBSTACLES ?? null;
     birdHighY = config.OBSTACLES?.birdHigh?.y ?? null;
   } catch { /* 설정이 없어도 시트는 만든다 */ }
+
+  const obs = buildObstacleSheet(OBSTACLE_SOURCES.map((o) => ({
+    ...o, img: decodePng(readFileSync(path.join(ROOT, 'game/assets/src', o.file))),
+  })));
+  writeFileSync(path.join(ROOT, 'game/assets/obstacles.png'), obs.png);
+  writeFileSync(path.join(ROOT, 'game/assets/obstacles.json'), `${JSON.stringify(obs.json, null, 2)}\n`);
+  const obsPreviewPath = path.join(tmpdir(), 'tw-sj-obstacles-preview.png');
+  writeFileSync(obsPreviewPath, obstaclePreview(obs.sheet, obs.json, obstacles));
+  for (const r of obs.report) {
+    console.log(`장애물 ${r.type}: 칸 ${r.pitch}px, 1/${r.scale} 축소 · ` + r.frames.map((f) => `${f.w}x${f.h}`).join(', '));
+  }
+  console.log(`장애물 미리보기: ${obsPreviewPath}`);
   const previewPath = path.join(tmpdir(), 'tw-sj-sprites-preview.png');
   writeFileSync(previewPath, preview(sheet, hitbox, birdHighY));
 

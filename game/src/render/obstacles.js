@@ -1,5 +1,6 @@
-// 장애물 임시 그림. 크기는 config 의 충돌 상자와 똑같다 — 보이는 것이 곧 맞는 것.
-// Gemini 장애물 그림이 오면 같은 변환 도구로 시트를 만들어 이 파일만 바꾼다.
+// 장애물 그림. Gemini 그림이 있는 종류는 시트(assets/obstacles.png, scripts/build-sprites.mjs 가 만든다)를
+// 쓰고, 없는 종류는 여기서 코드로 그린 임시 그림(크기 = 충돌 상자)을 쓴다.
+// 시트 그림은 충돌 상자보다 작지 않게 만든다 — 허공에 맞는 일이 없도록 (tests/obstacle-art.test.mjs).
 
 import { OBSTACLES } from '../config.js';
 
@@ -122,6 +123,27 @@ function skierDown(w, h) {
 }
 
 let cache = null;
+let atlas = null;   // { img, types: { skierDown: [{x,y,w,h}, …] } }
+
+export async function loadObstacleAtlas(base) {
+  try {
+    const meta = await fetch(`${base}obstacles.json`).then((r) => (r.ok ? r.json() : null));
+    if (!meta?.types) return null;
+    const img = new Image();
+    img.src = `${base}obstacles.png`;
+    await img.decode();
+    atlas = { img, types: meta.types };
+  } catch {
+    atlas = null;   // 그림이 없어도 임시 그림으로 계속 간다
+  }
+  return atlas;
+}
+
+// 같은 장애물은 지나가는 동안 같은 그림, 장애물마다는 섞이게 — 월드 x 로 고른다 (시뮬은 모른다)
+export const pickFrame = (frames, o) => frames[Math.abs(Math.floor(o.x)) % frames.length];
+
+// 그림을 충돌 상자 가로 가운데, 바닥에 맞춘다. 반환값은 상자 왼쪽 아래 기준 오프셋
+export const framePlacement = (o, f) => ({ dx: Math.floor((o.w - f.w) / 2), dy: -f.h });
 
 function build() {
   const o = OBSTACLES;
@@ -136,10 +158,17 @@ function build() {
   };
 }
 
-// (x, y) = 장애물 충돌 상자의 왼쪽 위 (화면 좌표)
-export function drawObstacle(ctx, type, x, y, animTick) {
+// (x, bottomY) = 장애물 충돌 상자의 왼쪽 아래 (화면 좌표)
+export function drawObstacle(ctx, o, x, bottomY, animTick) {
+  const art = atlas?.types[o.type];
+  if (art) {
+    const f = pickFrame(art, o);
+    const { dx, dy } = framePlacement(o, f);
+    ctx.drawImage(atlas.img, f.x, f.y, f.w, f.h, x + dx, bottomY + dy, f.w, f.h);
+    return;
+  }
   cache ??= build();
-  const frames = cache[type];
+  const frames = cache[o.type];
   if (!frames) return;
-  ctx.drawImage(frames[Math.floor(animTick / 10) % frames.length], x, y);
+  ctx.drawImage(frames[Math.floor(animTick / 10) % frames.length], x, bottomY - o.h);
 }

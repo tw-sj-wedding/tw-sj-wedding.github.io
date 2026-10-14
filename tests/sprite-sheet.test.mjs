@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { decodePng } from '../scripts/lib/png.mjs';
 import {
   detectGrid, toCells, quantize, splitFrames, packFrame, buildSheet, FRAME_NAMES,
+  downscaleFrame, buildObstacleSheet,
 } from '../scripts/lib/sprite-sheet.mjs';
 
 // ---------- 합성 이미지 ----------
@@ -177,4 +178,74 @@ test('실제 원본: 시트는 384x128 이고 JSON이 행과 프레임을 설명
   assert.deepEqual(real.json.rows, { groom: 0, bride: 1 });
   assert.equal(real.json.frame, 64);
   assert.deepEqual(real.json.frames, FRAME_NAMES);
+});
+
+// ---------- 장애물: 정수 배 축소 ----------
+
+function frameFrom(rows, palette) {
+  const h = rows.length, w = rows[0].length;
+  const data = new Uint8Array(w * h * 4);
+  rows.forEach((row, y) => [...row].forEach((ch, x) => {
+    if (ch !== '.') data.set([...palette[ch], 255], (y * w + x) * 4);
+  }));
+  return { x: 0, y: 0, w, h, data };
+}
+const px = (f, x, y) => [...f.data.slice((y * f.w + x) * 4, (y * f.w + x) * 4 + 4)];
+
+test('3배 축소: 블록의 가장 많은 색, 절반 넘게 비면 투명', () => {
+  const P = { r: [200, 0, 0], g: [0, 160, 0], b: [0, 0, 200] };
+  const f = frameFrom([
+    'rrrbb.rr',
+    'rrrbb.r.',
+    'rrr.....',
+    'rrgbbb..',
+    'rggbbb..',
+    'ggg.bb..',
+  ], P);
+  const d = downscaleFrame(f, 3);
+  // 8칸 → 3열이지만 마지막 열(2칸 폭 부분 블록: 빨강 3/6, 정확히 절반 → 투명)이
+  // 통째로 비어 잘려 나간다 (바닥 정렬을 위해 빈 가장자리는 자른다)
+  assert.deepEqual([d.w, d.h], [2, 2]);
+  assert.deepEqual(px(d, 0, 0), [200, 0, 0, 255]);            // 빨강 9/9
+  assert.equal(px(d, 1, 0)[3], 0);                            // 파랑 4/9 → 투명
+  assert.deepEqual(px(d, 0, 1), [0, 160, 0, 255]);            // 초록 5 > 빨강 3+... 최다 색
+  assert.deepEqual(px(d, 1, 1), [0, 0, 200, 255]);            // 파랑 8/9
+});
+
+test('축소는 새 색을 만들지 않는다 (원본 팔레트 그대로)', () => {
+  const P = { a: [10, 20, 30], b: [240, 230, 220] };
+  const f = frameFrom(['abab', 'baba', 'abab', 'baba'], P);
+  const d = downscaleFrame(f, 2);
+  for (let i = 0; i < d.data.length; i += 4) {
+    if (!d.data[i + 3]) continue;
+    const c = [...d.data.slice(i, i + 3)].join();
+    assert.ok(c === '10,20,30' || c === '240,230,220', `새 색 ${c}`);
+  }
+});
+
+let cachedObs;
+const getObs = () => cachedObs ??= buildObstacleSheet([{
+  type: 'skierDown', frames: 2, scale: 3,
+  img: decodePng(readFileSync('game/assets/src/obstacles/skier-down.png')),
+}]);
+
+test('실제 넘어진 스키어: 2종, 캐릭터 밀도에 맞는 크기', () => {
+  const { json, report } = getObs();
+  assert.equal(json.types.skierDown.length, 2);
+  for (const f of json.types.skierDown) {
+    assert.ok(f.w >= 30 && f.w <= 48 && f.h >= 14 && f.h <= 32, `프레임 ${f.w}x${f.h}`);
+  }
+  assert.ok(Math.abs(report[0].pitch * 1 - 6.46) < 0.2, `칸 ${report[0].pitch}`);
+});
+
+test('실제 넘어진 스키어: 시트 PNG 와 JSON 좌표가 맞는다', () => {
+  const { png, json } = getObs();
+  const sheet = decodePng(png);
+  for (const f of json.types.skierDown) {
+    assert.ok(f.x + f.w <= sheet.width && f.y + f.h <= sheet.height);
+    // 프레임 맨 아래 줄에 불투명 픽셀이 있다 (바닥에 붙여 그린다)
+    let bottom = 0;
+    for (let x = f.x; x < f.x + f.w; x++) bottom += sheet.data[((f.y + f.h - 1) * sheet.width + x) * 4 + 3] ? 1 : 0;
+    assert.ok(bottom > 0, '프레임 바닥이 비어 있음');
+  }
 });

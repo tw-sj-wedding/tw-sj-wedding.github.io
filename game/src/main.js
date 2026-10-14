@@ -5,6 +5,7 @@ import { TICK_HZ, MAX_CATCHUP_TICKS, SCORE, ANIM, GAME_VERSION, API_BASE } from 
 import { createRun, step, isOver, getScore, poseOf } from './sim/runner.js';
 import { createRenderer } from './render/renderer.js';
 import { loadSprites, drawPortrait } from './render/sprites.js';
+import { loadObstacleAtlas } from './render/obstacles.js';
 import { createInput } from './input.js';
 import { createAudio } from './audio.js';
 import { createScreens } from './ui/screens.js';
@@ -271,6 +272,7 @@ screens.setHi(storage.getHi());
 setMode('title');
 requestAnimationFrame(frame);
 
+loadObstacleAtlas('assets/');
 loadSprites('assets/').then((atlas) => {
   renderer.setAtlas(atlas);
   for (const c of screens.portraits()) drawPortrait(c, atlas, c.dataset.portrait);

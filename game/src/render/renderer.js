@@ -39,8 +39,8 @@ export function createRenderer(canvas, container) {
 
     for (const o of view.obstacles) {
       const x = Math.round(o.x - view.distance);
-      if (x > VIEW.W || x + o.w < 0) continue;
-      drawObstacle(ctx, o.type, x, groundY - o.y - o.h, view.animTick);
+      if (x > VIEW.W + 8 || x + o.w < -8) continue;   // 그림이 상자보다 몇 px 넓을 수 있다
+      drawObstacle(ctx, o, x, groundY - o.y, view.animTick);
     }
 
     const y = Math.round(groundY - view.playerY - 64);

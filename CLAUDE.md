@@ -65,6 +65,8 @@
   `npm run sprites` 가 `game/assets/obstacles.png/json` 을 만든다. 목록·축소 배율은
   `scripts/build-sprites.mjs` 의 `OBSTACLE_SOURCES`. 원본 픽셀이 캐릭터보다 굵으면 원본 격자 기준
   **정수 배**로만 줄인다 (보간 금지). 시트 그림은 충돌 상자보다 작으면 안 된다 (테스트가 막는다).
+- 선택 카드의 실사 인물: Gemini 누끼 원본 `game/assets/src/photos/{groom,bride}.png`(분홍 단색 배경) →
+  `npm run photos` 가 배경을 빼고 인물만 잘라 `game/assets/photos/` 를 만든다. 사진도 손으로 고치지 않는다.
 - 그림이 없는 장애물(바위·눈사람·새)은 `game/src/render/obstacles.js` 의 코드 임시 그림(크기 = 충돌 상자).
 
 ## 리더보드

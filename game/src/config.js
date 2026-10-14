@@ -14,8 +14,9 @@ export const VIEW = { W: 400, PLAYER_X: 60, SPAWN_X: 460, GROUND_RATIO: 0.6 };
 export const SPEED = { start: 240, accel: 3, max: Infinity };   // px/s, px/s²
 export const SCORE = { pxPerPoint: 24, flashEvery: 100 };
 
-// 점프는 높이 고정 포물선. 18틱째 정점 70px, 36틱(0.6초)에 착지.
-export const JUMP = { apex: 70, airTicks: 36 };
+// 점프는 높이 고정 포물선. 18틱째 정점 56px, 36틱(0.6초)에 착지.
+// 정점은 높은 새 윗면(birdHigh y+h = 60)보다 낮아야 한다 — 높으면 숙이지 않고 뛰어넘을 수 있다 (#43)
+export const JUMP = { apex: 56, airTicks: 36 };
 
 // 그림보다 작게 잡아 억울한 판정을 줄인다. 숙인 그림의 머리는 약 43px — 높은 새 밑면(46)보다 낮다.
 export const HITBOX = { stand: { w: 20, h: 48 }, duck: { w: 20, h: 34 } };

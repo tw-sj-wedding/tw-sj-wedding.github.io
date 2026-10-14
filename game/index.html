@@ -178,6 +178,46 @@
   .board__score { font-family: var(--font-num); color: var(--snow-ink); }
   .board-me, .board-status { margin: 0; font-size: 13px; color: var(--ink-soft); }
 
+  /* 김태웅(VIP): 금빛이 흐르는 줄 + 왕관 + 배지. 하객은 쓸 수 없는 이름이라 진짜 신랑만 이렇게 보인다 */
+  .board__row.is-vip {
+    position: relative;
+    background: linear-gradient(105deg, #fff4d4 0%, #ffe08f 22%, #fffaf0 38%, #ffd469 55%, #fff1c7 75%, #fff4d4 100%);
+    background-size: 260% 100%;
+    box-shadow: inset 0 0 0 1.5px #e2b247, 0 2px 10px rgba(214, 158, 36, .35);
+    font-weight: 700;
+    animation: vip-shine 3.6s linear infinite;
+  }
+  .is-vip .board__rank { color: #b07d0c; }
+  .is-vip .board__name { display: flex; align-items: center; gap: 4px; }
+  .vip__crown { display: inline-block; font-size: 1.05em; line-height: 1; animation: vip-bob 1.8s ease-in-out infinite; }
+  .vip__name {
+    background: linear-gradient(90deg, #9c6b00, #c2836f, #e0a800, #9c6b00);
+    background-size: 220% auto;
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent; -webkit-text-fill-color: transparent;
+    animation: vip-text 2.6s linear infinite;
+  }
+  .vip__badge {
+    flex: none;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--accent); color: #fff;
+    font-size: 10.5px; font-weight: 600; letter-spacing: .04em;
+  }
+  .is-vip .board__score { color: #8f6400; }
+  .board__row.is-vip::after {
+    content: '✦'; position: absolute; right: -3px; top: -7px;
+    font-size: 11px; color: #e0a800;
+    animation: vip-twinkle 1.4s ease-in-out infinite;
+  }
+  @keyframes vip-shine { to { background-position: -260% 0; } }
+  @keyframes vip-text { to { background-position: -220% 0; } }
+  @keyframes vip-bob { 50% { transform: translateY(-2px) rotate(-8deg); } }
+  @keyframes vip-twinkle { 50% { opacity: .15; transform: scale(.6); } }
+  @media (prefers-reduced-motion: reduce) {
+    .board__row.is-vip, .vip__crown, .vip__name, .board__row.is-vip::after { animation: none; }
+  }
+
   /* 하단 TOP 5: 지면선 아래 눈밭에 붙는다 (게임 중엔 이 자리에 조작 버튼) */
   .mini-board {
     position: absolute; left: 16px; right: 16px;
@@ -326,6 +366,6 @@
 
   <div id="rotate">폰을 세로로 돌려 주세요</div>
 </div>
-<script src="dist/game.5994e3928f.js" defer></script>
+<script src="dist/game.1fff1ab91a.js" defer></script>
 </body>
 </html>

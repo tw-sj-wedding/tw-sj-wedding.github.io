@@ -18,6 +18,9 @@ const MESSAGES = {
   old_client: '새 버전이 있어요. 페이지를 새로고침해 주세요',
 };
 
+// 화려하게 보여 줄 닉네임 → 배지. 예약어(shared/nickname.js)라 하객은 못 쓰고 관리자가 D1 에서만 붙인다
+const VIP = new Map([['김태웅', '신랑']]);
+
 const MINI_TOP = 5;
 const MINI_MIN_INTERVAL_MS = 15_000;   // 금방 넘어지고 다시 하는 판마다 서버를 부르지 않게
 
@@ -98,20 +101,27 @@ export function createLeaderboard({ root, api, storage, setMode }) {
     }
   }
 
+  function span(cls, text) {
+    const el = document.createElement('span');
+    el.className = cls;
+    el.textContent = text;
+    return el;
+  }
+
   function row({ rank, nickname, score, character }, isMe) {
+    const vip = VIP.get(nickname);
     const li = document.createElement('li');
-    li.className = `board__row${isMe ? ' is-me' : ''}`;
-    const cells = [
-      ['board__rank', String(rank)],
-      [`board__who board__who--${character === 'bride' ? 'bride' : 'groom'}`, ''],
-      ['board__name', nickname],
-      ['board__score', String(score)],
-    ];
-    for (const [cls, text] of cells) {
-      const span = document.createElement('span');
-      span.className = cls;
-      span.textContent = text;
-      li.appendChild(span);
+    li.className = `board__row${isMe ? ' is-me' : ''}${vip ? ' is-vip' : ''}`;
+    li.append(
+      span('board__rank', String(rank)),
+      span(`board__who board__who--${character === 'bride' ? 'bride' : 'groom'}`, ''),
+      span('board__name', vip ? '' : nickname),
+      span('board__score', String(score)),
+    );
+    if (vip) {
+      const crown = span('vip__crown', '👑');
+      crown.setAttribute('aria-hidden', 'true');
+      li.children[2].append(crown, span('vip__name', nickname), span('vip__badge', vip));
     }
     return li;
   }

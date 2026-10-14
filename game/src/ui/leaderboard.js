@@ -19,7 +19,7 @@ const MESSAGES = {
 };
 
 // 화려하게 보여 줄 닉네임 → 배지. 예약어(shared/nickname.js)라 하객은 못 쓰고 관리자가 D1 에서만 붙인다
-const VIP = new Map([['김태웅', '신랑']]);
+const VIP = new Map([['김태웅', '신랑'], ['박수진', '신부']]);
 
 const MINI_TOP = 5;
 const MINI_MIN_INTERVAL_MS = 15_000;   // 금방 넘어지고 다시 하는 판마다 서버를 부르지 않게

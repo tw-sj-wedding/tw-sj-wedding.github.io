@@ -31,7 +31,7 @@
 - 커밋 메시지 본문에 `Closes #N` 을 적어 이슈를 닫는다. 여러 커밋에 걸치는 기능이면
   마지막 커밋에서만 닫는다.
 - 라벨: `game`(게임 본체), `invitation`(청첩장 페이지), `infra`(빌드·배포·테스트),
-  `qa`(실기기 확인에서 나온 것). 마일스톤은 `HANDOFF.md` §10의 M0~M7.
+  `qa`(실기기 확인에서 나온 것).
 
 ## 개발과 배포
 
@@ -42,7 +42,9 @@
     버튼이 죽는데 콘솔에는 아무 에러도 안 남아서, 없는 버그를 쫓게 된다.
     `scripts/dev-server.mjs` 는 모든 응답에 `Cache-Control: no-store` 를 붙인다.
 - 테스트 전체: `npm test`
-  - 한 파일만: `node --test tests/stage1-spawn.test.mjs`
+  - 한 파일만: `node --test tests/runner.test.mjs`
+  - `tests/build.test.mjs` 는 `game/index.html` 이 최신 소스로 빌드돼 있지 않으면 실패한다.
+    소스를 고쳤다면 커밋 전에 `npm run build`.
   - `node --test tests/` 처럼 디렉터리를 넘기면 Node 24가 이를 모듈 경로로 해석해
     `MODULE_NOT_FOUND`로 죽는다. 반드시 glob(`tests/**/*.test.mjs`)이나 파일 경로를 쓴다.
 - **배포 전 `npm run build`는 필수다.** 카톡 인앱 캐시가 강해서 해시 파일명이
@@ -50,3 +52,22 @@
   빌드를 빼먹으면 하객에게 옛 버전이 계속 나간다.
 - `game/index.html`은 `game/dev.html`에서 **생성**된다. 직접 고치지 않는다.
 - `?debug=1`일 때만 vConsole을 로드한다 (카톡 웹뷰는 원격 디버깅이 사실상 불가).
+- 폰 실기기 확인: `npm run dev` 가 출력하는 LAN 주소로 같은 Wi-Fi 에서 연다.
+
+## 그림
+
+- 캐릭터 원본: `game/assets/src/{groom,bride}.png` — Gemini 생성, **마젠타(#FF00FF) 단색 배경**,
+  가로 한 줄에 `달리기1, 달리기2, 점프, 숙이기1, 숙이기2, 넘어짐`, 오른쪽 진행.
+- 바꾸려면 원본을 덮어쓰고 `npm run sprites` → `game/assets/sprites.png/json` 이 다시 생긴다.
+  미리보기(4배, 충돌 상자 표시) 경로가 출력되니 열어서 확인한다. 칸 크기가 3.75±0.1 을
+  벗어나면 경고 — 같은 화면에서 픽셀 밀도가 달라 보인다.
+- 장애물은 아직 코드로 그린 임시 그림(`game/src/render/obstacles.js`, 크기 = 충돌 상자).
+
+## 리더보드
+
+- Worker: `worker/` (Cloudflare Workers + D1). 배포·운영 명령은 `worker/README.md`.
+- 로컬: `npm run dev:api` (같은 Worker 코드를 `node:sqlite` 로 실행, 포트 8787) 후
+  `http://localhost:8123/game/dev.html?api=http://localhost:8787`
+- `game/src/config.js` 의 `API_BASE` 가 비어 있으면 리더보드 UI는 숨겨진다.
+- 점수 공식(`SPEED`·`SCORE`·`TICK_HZ`)을 바꾸면 `GAME_VERSION` 을 올리고 Worker 의
+  `CLIENT_VERSIONS` 에 추가해 다시 배포한다. 공식은 `game/src/shared/scoring.js` 를 서버와 공유한다.

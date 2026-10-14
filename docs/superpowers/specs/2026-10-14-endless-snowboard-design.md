@@ -45,10 +45,10 @@
 
 **해상도와 배율**
 - 논리 가로 **400**. 세로는 화면 비율에 맞춰 늘어난다 (대략 700~900).
-- 캔버스는 기기 물리 해상도에 대해 **정수 배율**로 그린다: `scale = max(1, round(physicalWidth / 400))`,
-  실제 논리 가로 = `physicalWidth / scale` (기기에 따라 약 360~430). `image-rendering: pixelated`.
-- 시뮬레이션의 장애물 생성·판정은 논리 가로 400 기준으로 고정한다.
-  넓은 기기에서 앞이 조금 더(최대 약 0.1초) 보이는 차이는 허용한다.
+- **보이는 가로는 기기와 무관하게 400 고정** (구현 중 변경, DECISIONS #34). 내부 해상도는
+  `400 × k` (`k = ceil(물리폭 / 400)`, 정수)로 그리고 CSS 로 화면 폭에 맞춰 약간 줄인다.
+  `image-rendering: pixelated`. 처음 안(정수 배율 + 보이는 폭 360~430)은 DPR 1.5 기기에서
+  보이는 폭이 540까지 벌어져 버렸다.
 
 **배치**
 - 캐릭터는 x = 60에 고정, 세계가 오른쪽에서 왼쪽으로 흐른다.
@@ -108,7 +108,7 @@
 **공정성**
 - 장애물 사이 최소 간격 = `현재 속도 × (체공 시간 + 반응 여유 0.25초)` 이상.
   간격은 이 최소값 위에서 RNG로 벌린다.
-- 장애물은 논리 x = 420(화면 밖)에서 생성된다.
+- 장애물은 논리 x = 460(화면 밖)에서 생성된다 (DECISIONS #35).
 
 **기록**
 - 최고기록(HI), 마지막 캐릭터, 닉네임, 익명 `playerId`(UUID)를 localStorage에 저장.
@@ -158,7 +158,8 @@ Cloudflare 계정은 사용자가 생성한다. 착수 시 공식 문서로 무�
 4. 네트워크·서버 오류 시 등록 실패만 안내하고 게임은 계속.
 
 **API**
-- `POST /api/session` → `{ token }`. token = HMAC-SHA256(`issuedAt | nonce`). DB 쓰기 없음. 유효 60분.
+- `POST /api/session` → `{ token }`. token = HMAC-SHA256(`issuedAt | nonce`). DB 쓰기 없음. 유효 3시간
+  (판 시작 전에 미리 받아 두므로, DECISIONS #37). nonce 는 모든 검증을 통과한 뒤에만 소모 (#38).
 - `POST /api/score` body `{ token, playerId, nickname, score, durationTicks, character, clientVersion }` → `{ rank, best }`.
   `playerId`당 최고 기록 1개 — 기존보다 낮으면 저장하지 않고 기존 기록과 순위를 돌려준다.
 - `GET /api/leaderboard?playerId=` → `{ top: [{ rank, nickname, score, character }], me: { rank, score } | null }`.

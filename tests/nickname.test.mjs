@@ -15,7 +15,7 @@ test('길이가 맞지 않으면 length', () => {
 });
 
 test('공백·기호·자모·이모지는 chars', () => {
-  for (const v of ['하 객', 'abc!', 'ㅅㅂ', '하객😀', '<b>x</b>']) {
+  for (const v of ['하 객', 'abc!', 'ㅋㅋ', 'ㅋㅋ민수', '하객😀', '<b>x</b>']) {
     assert.deepEqual(validateNickname(v), { ok: false, reason: 'chars' }, v);
   }
 });
@@ -46,6 +46,12 @@ test('비속어 갈래별 대표', () => {
 
 test('우회: 숫자 끼우기, 숫자→영문, 같은 글자 반복, 숫자 욕', () => {
   for (const v of ['씨1발', '병2신', 'sh1t', 's3x', 'b00b', 'fuuuuck', 'asssshole', '씨씨발', '개18', '18놈', '씨8']) {
+    assert.deepEqual(validateNickname(v), { ok: false, reason: 'profanity' }, v);
+  }
+});
+
+test('자음·모음 욕은 숫자·기호를 끼우거나 글자와 섞어도 profanity', () => {
+  for (const v of ['ㅂㅅ', 'ㅈㄹ', 'ㅅㅂ', 'ㅆㅂ', 'ㅄ아', 'ㅅ1ㅂ', 'ㅅ.ㅂ', 'ㅂ민ㅅ', 'ㅂㅅ아', 'ㅈ같네', '시ㅂ', '병ㅅ', '민수ㅗ', 'ㅁㅊ놈']) {
     assert.deepEqual(validateNickname(v), { ok: false, reason: 'profanity' }, v);
   }
 });

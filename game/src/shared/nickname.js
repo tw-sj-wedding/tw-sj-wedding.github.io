@@ -40,6 +40,14 @@ const PROFANITY = [
   '18놈', '개18', '씨8', '시8', '십8',
 ];
 
+// 자음·모음 욕. 자모는 ALLOWED 에서도 막히지만, 자모 허용 여부와 상관없이 막고 '다른 닉네임' 안내가
+// 나가도록 문자 검사보다 먼저 본다. 자모만 뽑아서(ㅅ1ㅂ·ㅂ민ㅅ → ㅅㅂ·ㅂㅅ) 찾고, 글자와 섞인 꼴(ㅈ같, 시ㅂ)도 찾는다.
+const JAMO_PROFANITY = [
+  'ㅅㅂ', 'ㅆㅂ', 'ㅅㅃ', 'ㅂㅅ', 'ㅄ', 'ㅈㄹ', 'ㅈㄴ', 'ㅁㅊ', 'ㅅㄲ', 'ㄱㅅㄲ', 'ㅆㄹㄱ', 'ㄲㅈ', 'ㄷㅊ', 'ㅈㄲ',
+  'ㄴㄱㅁ', 'ㅇㅁ', 'ㅂㅈ', 'ㅈㅈ', 'ㅗ',
+  'ㅈ같', 'ㅈ밥', 'ㅈ까', 'ㅅ발', 'ㅆ발', '시ㅂ', '씨ㅂ', 'ㅂ신', '병ㅅ', 'ㅈ랄', '지ㄹ', '개ㅅㄲ', '개ㅆㄲ',
+];
+
 // 금칙어를 품고 있지만 멀쩡한 말. 검사 전에 이 부분만 지운다 (남은 부분은 그대로 검사한다)
 const INNOCENT = ['졸라맨', '시바견', '시바이누', '십팔번', '새끼손가락', '보지마', '자지러', '메갈로', '갈보리', 'fuku'];
 
@@ -66,9 +74,14 @@ export function validateNickname(raw) {
   const value = raw.normalize('NFC').trim();
   const len = [...value].length;
   if (len < 2 || len > 10) return { ok: false, reason: 'length' };
-  if (!ALLOWED.test(value)) return { ok: false, reason: 'chars' };
 
   const lower = value.toLowerCase();
+  const jamo = lower.replace(/[^ㄱ-ㅣ]/g, '');
+  const letters = lower.replace(/[^가-힣ㄱ-ㅣa-z]/g, '');
+  if (JAMO_PROFANITY.some((w) => jamo.includes(w) || letters.includes(w))) return { ok: false, reason: 'profanity' };
+
+  if (!ALLOWED.test(value)) return { ok: false, reason: 'chars' };
+
   if (RESERVED_EXACT.includes(lower) || RESERVED_PART.some((w) => lower.includes(w))) {
     return { ok: false, reason: 'reserved' };
   }

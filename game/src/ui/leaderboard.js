@@ -7,7 +7,7 @@ import { GAME_VERSION } from '../config.js';
 
 const MESSAGES = {
   length: '닉네임은 2~10자로 적어 주세요',
-  chars: '한글·영문·숫자만, 띄어쓰기 없이 적어 주세요',
+  chars: '완성된 한글·영문·숫자만, 띄어쓰기 없이 적어 주세요',
   reserved: '쓸 수 없는 닉네임이에요',
   profanity: '다른 닉네임을 적어 주세요',
   no_token: '서버에 연결하지 못해 이번 판은 등록할 수 없어요',

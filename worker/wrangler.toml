@@ -13,6 +13,6 @@ migrations_dir = "migrations"
 [vars]
 ALLOWED_ORIGINS = "https://tw-sj-wedding.github.io"
 # game/src/config.js 의 GAME_VERSION. 점수 공식이 바뀌면 함께 올린다 (쉼표로 여러 개 허용)
-CLIENT_VERSIONS = "2.0.0"
+CLIENT_VERSIONS = "2.1.0"
 
 # HMAC_SECRET 은 여기 적지 않는다: `npx wrangler secret put HMAC_SECRET`

@@ -1,0 +1,19 @@
+{
+  "frame": 64,
+  "frames": [
+    "run1",
+    "run2",
+    "jump",
+    "duck1",
+    "duck2",
+    "crash"
+  ],
+  "rows": {
+    "groom": 0,
+    "bride": 1
+  },
+  "pitch": {
+    "groom": 3.7495,
+    "bride": 3.7493
+  }
+}

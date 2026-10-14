@@ -13,7 +13,7 @@ test('모든 응답에 no-store가 붙는다', async () => {
   // 개발 서버가 캐시를 허용하면 ES 모듈의 옛 사본이 재사용되어
   // 편집이 반영되지 않고, 존재하지 않는 버그를 쫓게 된다.
   await withServer(async (base) => {
-    for (const path of ['/game/dev.html', '/game/src/main.js', '/game/src/sim/stage1.js']) {
+    for (const path of ['/game/dev.html', '/game/src/main.js', '/game/src/sim/rng.js']) {
       const res = await fetch(base + path);
       assert.equal(res.status, 200, `${path} 가 200이 아님`);
       assert.match(res.headers.get('cache-control') ?? '', /no-store/, `${path} 에 no-store 없음`);

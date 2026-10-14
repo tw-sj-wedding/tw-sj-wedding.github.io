@@ -153,6 +153,30 @@
   .links { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 16px; margin-top: 4px; }
   .links a { font-size: 13px; color: var(--ink-soft); text-decoration: none; border-bottom: 1px solid rgba(47, 42, 39, .18); padding-bottom: 1px; }
 
+  /* ---------- 등록·순위표 ---------- */
+  .reg-form { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; }
+  .reg-input {
+    width: 100%; max-width: 280px;
+    padding: 13px 16px;
+    border: 1.5px solid var(--line); border-radius: 14px;
+    background: #fff; color: var(--ink);
+    font-family: var(--font-ui); font-size: 16px; text-align: center;
+    user-select: text; -webkit-user-select: text;
+  }
+  .reg-input:focus { outline: none; border-color: var(--accent); }
+  .form-error { margin: 0; font-size: 13px; color: #b5523b; }
+  .notice { margin: 0; font-size: 11.5px; line-height: 1.6; color: var(--ink-soft); }
+  .board { list-style: none; margin: 0; padding: 0; width: 100%; max-width: 320px; }
+  .board__row { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 10px; font-size: 14px; }
+  .board__row:nth-child(odd) { background: rgba(233, 221, 215, .35); }
+  .board__row.is-me { background: rgba(194, 131, 111, .2); font-weight: 700; }
+  .board__rank { width: 22px; text-align: right; font-family: var(--font-num); color: var(--ink-soft); }
+  .board__who { width: 32px; height: 32px; flex: none; background: url(assets/sprites.png) no-repeat; background-size: 192px 64px; image-rendering: pixelated; }
+  .board__who--bride { background-position: 0 -32px; }
+  .board__name { flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .board__score { font-family: var(--font-num); color: var(--snow-ink); }
+  .board-me, .board-status { margin: 0; font-size: 13px; color: var(--ink-soft); }
+
   .countdown { position: absolute; left: 0; right: 0; top: 30%; display: flex; justify-content: center; pointer-events: none; }
   .countdown span { font-family: var(--font-num); font-size: 72px; font-weight: 700; color: var(--snow-ink); text-shadow: 0 3px 0 rgba(255,255,255,.8); }
 
@@ -222,6 +246,26 @@
     <button class="btn btn--primary" type="button" data-action="retry" data-over-btn>다시 하기</button>
     <button class="btn" type="button" data-action="register" data-over-btn data-needs-api hidden>리더보드에 등록</button>
     <div class="links"><a href="#" data-action="change">캐릭터 바꾸기</a><a href="../">청첩장으로</a></div>
+  </section>
+
+  <section data-panel="register" class="panel" hidden>
+    <h2>리더보드에 등록</h2>
+    <p class="final"><b id="reg-score">0</b><span>점</span></p>
+    <form class="reg-form" id="reg-form" novalidate>
+      <input class="reg-input" id="reg-name" type="text" maxlength="10" autocomplete="nickname" autocapitalize="off" enterkeyhint="done" placeholder="닉네임 (2~10자)" aria-label="닉네임">
+      <p class="form-error" id="reg-error" role="alert" hidden></p>
+      <button class="btn btn--primary" type="submit" id="reg-submit">등록하기</button>
+    </form>
+    <p class="notice">한글·영문·숫자 2~10자, 띄어쓰기 없이<br>기록은 결혼식 1개월 뒤(2027년 3월 1일) 지워져요</p>
+    <div class="links"><a href="#" data-action="register-cancel">돌아가기</a></div>
+  </section>
+
+  <section data-panel="board" class="panel" hidden>
+    <h2>하객 순위표</h2>
+    <ol class="board" id="board-list"></ol>
+    <p class="board-me" id="board-me" hidden></p>
+    <p class="board-status" id="board-status" hidden></p>
+    <button class="btn" type="button" data-action="board-close">닫기</button>
   </section>
 
   <div id="rotate">폰을 세로로 돌려 주세요</div>

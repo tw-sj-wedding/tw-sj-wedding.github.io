@@ -60,7 +60,8 @@ export function createScreens(root) {
       el.best.textContent = `HI ${pad(hi)}`;
       el.newRecord.hidden = !newRecord;
     },
-    enableOverButtons(on) { for (const b of el.overButtons) b.disabled = !on; },
+    // data-blocked: 이번 판은 누를 수 없는 버튼 (0점이라 등록 불가, 이미 등록함)
+    enableOverButtons(on) { for (const b of el.overButtons) b.disabled = !on || b.hasAttribute('data-blocked'); },
     showHint(on) { el.hint.hidden = !on; },
     setApiAvailable(on) { for (const n of el.needsApi) n.hidden = !on; },
     setLastCharacter(c) { for (const p of el.picks) p.classList.toggle('is-last', p.dataset.character === c); },

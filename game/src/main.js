@@ -9,6 +9,8 @@ import { createInput } from './input.js';
 import { createAudio } from './audio.js';
 import { createScreens } from './ui/screens.js';
 import { createStorage } from './storage.js';
+import { createApi, resolveApiBase } from './net/api.js';
+import { createLeaderboard } from './ui/leaderboard.js';
 
 const MS_PER_TICK = 1000 / TICK_HZ;
 const IDLE_SPEED = 70;   // 타이틀 화면에서 배경이 흐르는 속도 (px/s)
@@ -19,6 +21,7 @@ const renderer = createRenderer(canvas, stage);
 const screens = createScreens(stage);
 const storage = createStorage();
 const audio = createAudio();
+const api = createApi(resolveApiBase(API_BASE, location.search));
 const input = createInput({
   jumpEl: document.getElementById('btn-jump'),
   duckEl: document.getElementById('btn-duck'),
@@ -38,6 +41,9 @@ let hintTimer = 0;
 let overTimers = [];
 let countdownTimer = 0;
 let guardArmed = false;
+let run = null;            // 이번 판의 리더보드 등록 정보 { tokenP, character, score, durationTicks, registered }
+// 다음 판용 토큰을 미리 받아 둔다 — 판 시작 전에 발급된 토큰이어야 서버 시간 검사가 넉넉하다
+let nextToken = api.enabled ? api.getToken() : null;
 
 function layout() {
   const { groundCss } = renderer.resize();
@@ -48,6 +54,8 @@ function setMode(next) {
   mode = next;
   screens.show(next);
 }
+
+const leaderboard = createLeaderboard({ root: stage, api, storage, setMode });
 
 function newSeed() {
   // 시뮬 밖이므로 Date/random 을 써도 된다. 시뮬은 이 seed 만 받는다.
@@ -73,6 +81,8 @@ function startRun(c = character) {
   clearOverTimers();
   clearTimeout(countdownTimer);
   sim = createRun(newSeed());
+  run = { tokenP: nextToken ?? (api.enabled ? api.getToken() : Promise.resolve(null)), character: c, score: 0, durationTicks: 0, registered: false };
+  nextToken = api.enabled ? api.getToken() : null;
   prev = { distance: 0, playerY: 0 };
   input.reset();
   acc = 0;
@@ -98,6 +108,9 @@ function gameOver() {
   screens.showHint(false);
   storage.markHintSeen();
   screens.setOver({ score, hi, newRecord: score > prevHi && score > 0 });
+  run.score = score;
+  run.durationTicks = sim.tick;
+  leaderboard.resetForRun(run);
   screens.setHi(hi);
   mode = 'over';
   // 넘어진 모습을 잠깐 보여 주고, 점프 버튼을 연타하던 손가락이 "다시 하기"를 바로 누르지 않게
@@ -209,6 +222,10 @@ screens.onAction((action, data) => {
   else if (action === 'pause') pause();
   else if (action === 'resume') resume();
   else if (action === 'change') toTitle();
+  else if (action === 'register') leaderboard.openRegister();
+  else if (action === 'register-cancel') leaderboard.cancelRegister();
+  else if (action === 'board') leaderboard.openBoard('title');
+  else if (action === 'board-close') leaderboard.close();
 });
 
 document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
@@ -218,6 +235,10 @@ window.addEventListener('popstate', () => {
   guardArmed = false;
   if (mode === 'playing' || mode === 'countdown') {
     pause();
+    armBackGuard();
+  } else if (mode === 'register' || mode === 'board') {
+    // 등록·순위표에서 뒤로가기는 패널만 닫는다
+    if (mode === 'register') leaderboard.cancelRegister(); else leaderboard.close();
     armBackGuard();
   } else {
     history.back();   // 게임 중이 아니면 뒤로가기는 그대로 이탈
@@ -244,7 +265,7 @@ if (new URLSearchParams(location.search).get('debug') === '1') {
 
 layout();
 input.attach();
-screens.setApiAvailable(Boolean(API_BASE));
+screens.setApiAvailable(api.enabled);
 screens.setLastCharacter(storage.getCharacter());
 screens.setHi(storage.getHi());
 setMode('title');

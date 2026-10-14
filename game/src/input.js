@@ -39,12 +39,19 @@ export function createInput({ jumpEl, duckEl, keyTarget }) {
     duckPointers.delete(e.pointerId);
     if (duckPointers.size === 0) duckEl.classList.remove(PRESSED);
   }
+  // 닉네임 입력칸에 치는 키는 게임 조작이 아니다 (W·S·스페이스를 막으면 그 글자를 못 쓴다)
+  const isTyping = (e) => {
+    const t = e.target;
+    return t?.tagName === 'INPUT' || t?.tagName === 'TEXTAREA' || t?.isContentEditable === true;
+  };
+
   function onKeyDown(e) {
-    if (e.repeat) return;
+    if (e.repeat || isTyping(e)) return;
     if (JUMP_KEYS.has(e.code)) { e.preventDefault?.(); jumpQueued = true; }
     else if (DUCK_KEYS.has(e.code)) { e.preventDefault?.(); duckKey = true; }
   }
   function onKeyUp(e) {
+    if (isTyping(e)) return;
     if (DUCK_KEYS.has(e.code)) duckKey = false;
   }
   const noMenu = (e) => e.preventDefault();

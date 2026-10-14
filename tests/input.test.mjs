@@ -107,3 +107,14 @@ test('길게 눌러도 컨텍스트 메뉴가 뜨지 않는다', () => {
   const { duckEl } = setup();
   assert.equal(fire(duckEl, 'contextmenu').defaultPrevented, true);
 });
+
+test('닉네임 입력칸에 치는 키는 게임 조작으로 가로채지 않는다', () => {
+  // W·S·스페이스를 게임이 막으면 닉네임에 그 글자를 쓸 수 없다
+  const typingField = new EventTarget();
+  typingField.tagName = 'INPUT';
+  const input = createInput({ jumpEl: fakeEl(), duckEl: fakeEl(), keyTarget: typingField });
+  input.attach();
+  const e = fire(typingField, 'keydown', { code: 'Space', repeat: false });
+  assert.equal(e.defaultPrevented, false);
+  assert.equal(input.consume().jump, false);
+});

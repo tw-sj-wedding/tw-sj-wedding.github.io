@@ -151,9 +151,9 @@ python3 tools/sync-gallery-sizes.py             # 실제 반영
 지금 사진은 **스튜디오 촬영 원본을 흐리게 구운 임시본**입니다 (2026-10-15).
 공개 저장소라 원본은 커밋하지 않고, `tools/blur-preview-photos.sh 원본들...` 로 블러를 이미지에 구워 넣었습니다.
 *   메인 인물: `upload/images/main_preview.jpg` (블러를 갤러리보다 약하게)
-*   카톡 공유: `upload/images/kakao_share_pending.jpg` (800x600, `og:image`) — '사진 준비 중' 배지까지 이미지에 구워 넣음 (`tools/share-badge.html`)
+*   카톡 공유: `upload/images/kakao_share_soon.jpg` (800x600, `og:image`) — 'PHOTOS COMING SOON' 배지까지 이미지에 구워 넣음 (`tools/share-badge.html`)
 *   갤러리: `upload/gallery/preview_grid.jpg` — 9장을 3x3 **한 장**으로 붙인 것.
-*   '사진 준비 중' 안내(`.photo-pending`)는 메인 사진 윗부분과 갤러리 한가운데 두 곳에 같은 문구로 얹었습니다.
+*   'PHOTOS COMING SOON' 안내(`.photo-pending`, 한글 문구 없음)는 메인 사진 윗부분과 갤러리 한가운데 두 곳에 얹었습니다.
     매스너리 갤러리 마크업은 빼 두었고, 확대 화면(`.pswp`)과 매스너리 CSS/JS 는 그대로 남아 있습니다.
 
 보정본이 오면 매스너리 갤러리로 되돌립니다:
@@ -161,7 +161,7 @@ python3 tools/sync-gallery-sizes.py             # 실제 반영
 2.  `index.html` 의 `.photo-grid` 블록을 매스너리 목록(`.skin_gallery` 의 figure 들 + `.gallery__more` 버튼)으로 바꿉니다.
     마크업 원형은 커밋 `22c27ab` 의 `index.html` 에 있습니다 (`git show 22c27ab:index.html`).
 3.  메인의 `.photo-pending--hero`, `css/aesthetic.css` 의 '11. 임시' 블록, `upload/gallery/preview_grid.jpg` 를 지웁니다.
-4.  메인 `src`, `og:image` 를 새 파일명으로 바꾸고 `upload/images/main_preview.jpg`, `kakao_share_pending.jpg` 를 지웁니다.
+4.  메인 `src`, `og:image` 를 새 파일명으로 바꾸고 `upload/images/main_preview.jpg`, `kakao_share_soon.jpg` 를 지웁니다.
 5.  `python3 tools/sync-gallery-sizes.py` 로 `data-size` 를 맞추고 `npm test`
     (`tests/invitation.test.mjs` 가 빠진 파일·안 쓰는 갤러리 사진·크기 불일치를 잡습니다).
 6.  카카오 공유 디버거에서 `https://tw-sj-wedding.github.io/` 캐시를 초기화합니다.

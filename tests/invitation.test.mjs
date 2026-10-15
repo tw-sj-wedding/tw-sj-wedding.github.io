@@ -65,3 +65,36 @@ test('진입 버튼은 사진 갤러리 다음, 오시는 길 앞에 있다', ()
 test('진입 버튼 스타일이 있다', () => {
   assert.ok(readFileSync('css/aesthetic.css', 'utf8').includes('.minigame__btn'));
 });
+
+test('인사말에 임시 서명이 없다', () => {
+  assert.ok(!/Written by Gemini/i.test(html));
+});
+
+test('교통·주차 안내는 예식장 공식 안내다', () => {
+  for (const s of ['지하철 및 셔틀버스 이용시', '일반 버스 이용시', '자동차 이용시', '동시 950대 주차 가능', '서울상록회관']) {
+    assert.ok(html.includes(s), `${s} 없음`);
+  }
+  assert.ok(!html.includes('가까울듯'), '임시 도보 안내가 남음');
+});
+
+test('화환 보내기는 최하단 버튼 하나뿐이고 오늘의화환 주문 페이지로 간다', () => {
+  assert.ok(!html.includes('floatingBanner'), '좌측 하단 플로팅 배너가 남음');
+  assert.ok(!html.includes('waiting.html'), '임시 페이지 링크가 남음');
+  const links = html.match(/<a [^>]*class="[^"]*fl_btn[^"]*"[^>]*>/g) ?? [];
+  assert.equal(links.length, 1);
+  assert.match(links[0], /href="https:\/\/xn--wh1br48ap0ao51bua\.com\/w\/npZFSGwCKC\/order"/);
+});
+
+test('임시 ATM 안내가 없다', () => {
+  assert.ok(!html.includes('ATM 안내'));
+});
+
+test('신랑 측 혼주 이름·연락처가 채워져 있다', () => {
+  const block = html.slice(html.indexOf('<h3>신랑 측 혼주</h3>'), html.indexOf('<h3>신부 측 혼주</h3>'));
+  assert.ok(!block.includes('(temp)'), '임시 이름이 남음');
+  for (const [name, tel] of [['김세광', '01037418682'], ['민미경', '01089715791']]) {
+    assert.ok(block.includes(name), `${name} 없음`);
+    assert.ok(block.includes(`href="tel:${tel}"`) && block.includes(`href="sms:${tel}"`), `${name} 연락처 없음`);
+  }
+  assert.ok(!/href="(tel|sms):"/.test(block), '빈 연락처 버튼이 남음');
+});

@@ -152,14 +152,15 @@ python3 tools/sync-gallery-sizes.py             # 실제 반영
 공개 저장소라 원본은 커밋하지 않고, `tools/blur-preview-photos.sh 원본들...` 로 블러를 이미지에 구워 넣었습니다.
 *   메인 인물: `upload/images/main_preview.jpg` (블러를 갤러리보다 약하게)
 *   카톡 공유: `upload/images/kakao_share_preview.jpg` (800x600, `og:image`)
-*   갤러리: `upload/gallery/preview_grid.jpg` — 9장을 3x3 **한 장**으로 붙인 것. 그 위에 '사진 준비 중' 안내를 얹었습니다.
+*   갤러리: `upload/gallery/preview_grid.jpg` — 9장을 3x3 **한 장**으로 붙인 것.
+*   '사진 준비 중' 안내(`.photo-pending`)는 메인 사진 윗부분과 갤러리 한가운데 두 곳에 같은 문구로 얹었습니다.
     매스너리 갤러리 마크업은 빼 두었고, 확대 화면(`.pswp`)과 매스너리 CSS/JS 는 그대로 남아 있습니다.
 
 보정본이 오면 매스너리 갤러리로 되돌립니다:
 1.  사진은 **새 파일명**으로 넣습니다. 같은 이름으로 덮어쓰면 카톡 인앱 브라우저와 카카오 공유 썸네일이 옛 사진을 오래 붙잡습니다.
 2.  `index.html` 의 `.photo-grid` 블록을 매스너리 목록(`.skin_gallery` 의 figure 들 + `.gallery__more` 버튼)으로 바꿉니다.
     마크업 원형은 커밋 `22c27ab` 의 `index.html` 에 있습니다 (`git show 22c27ab:index.html`).
-3.  `css/aesthetic.css` 의 '11. 임시' 블록과 `upload/gallery/preview_grid.jpg` 를 지웁니다.
+3.  메인의 `.photo-pending--hero`, `css/aesthetic.css` 의 '11. 임시' 블록, `upload/gallery/preview_grid.jpg` 를 지웁니다.
 4.  메인 `src`, `og:image` 를 새 파일명으로 바꾸고 `upload/images/*_preview.jpg` 를 지웁니다.
 5.  `python3 tools/sync-gallery-sizes.py` 로 `data-size` 를 맞추고 `npm test`
     (`tests/invitation.test.mjs` 가 빠진 파일·안 쓰는 갤러리 사진·크기 불일치를 잡습니다).

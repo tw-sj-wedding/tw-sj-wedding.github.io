@@ -1034,8 +1034,8 @@ div.toast p {
 /* ============================================================
    11. 임시 — 보정본 도착 전 3x3 사진 + 안내
    지금 갤러리는 스튜디오 원본 9장을 흐리게 구운 한 장입니다(tools/blur-preview-photos.sh).
-   보정본으로 바꿀 때 이 블록과 index.html 의 .photo-grid 를 함께 지우고
-   매스너리 갤러리를 되돌립니다 (docs/PROJECT_STATUS.md '사진 교체하기').
+   보정본으로 바꿀 때 이 블록과 index.html 의 .photo-grid · .photo-pending--hero 를
+   함께 지우고 매스너리 갤러리를 되돌립니다 (docs/PROJECT_STATUS.md '사진 교체하기').
    ============================================================ */
 .photo-grid {
     position: relative;
@@ -1047,10 +1047,12 @@ div.toast p {
     width: 100%;
     height: auto;
 }
-.photo-grid .photo-pending {
+/* 사진 위에 얹는 안내 카드 — 갤러리는 한가운데, 메인은 얼굴을 피해 윗부분(배경) */
+.photo-pending {
     position: absolute;
     left: 50%;
     top: 50%;
+    z-index: 2;
     width: max-content;
     max-width: 86%;
     padding: 16px 22px 15px;
@@ -1059,6 +1061,18 @@ div.toast p {
     box-shadow: 0 6px 24px rgba(60, 40, 32, .14);
     text-align: center;
     transform: translate(-50%, -50%);
+}
+.photo-pending--hero {
+    top: 17%;
+    /* 메인 사진이 자리 잡은 뒤에 떠오르게 */
+    animation: pendingIn 1.2s var(--ease) .6s both;
+}
+@keyframes pendingIn {
+    from { opacity: 0; transform: translate(-50%, -40%); }
+    to   { opacity: 1; transform: translate(-50%, -50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .photo-pending--hero { animation: none; }
 }
 .photo-pending__en {
     display: block;

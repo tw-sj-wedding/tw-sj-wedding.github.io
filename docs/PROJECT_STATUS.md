@@ -16,7 +16,7 @@ GitHub Pages 배포를 위해 루트 디렉토리를 기준으로 정돈되었�
 ├── dist/                 # 갤러리 라이브러리 (Photoswipe 등) 리소스
 ├── upload/               # 개인화 리소스 폴더
 │   ├── images/           # 메인 배경, 인물 사진, 카톡 공유 이미지
-│   ├── gallery/          # 갤러리용 사진들 (photo_1 ~ photo_36)
+│   ├── gallery/          # 갤러리용 사진들 (지금은 preview_grid.jpg 한 장, 스튜디오 원본 블러본)
 │   └── template/         # 템플릿 전용 디자인 리소스
 │       └── MC3220/       # 현재 사용 중인 MC3220 템플릿용 CSS/JS
 └── docs/                 # 프로젝트 문서 및 가이드
@@ -101,9 +101,6 @@ python3 tools/sync-gallery-sizes.py             # 실제 반영
 ### 남은 것 (이번 디자인 작업 범위 밖)
 *   혼주 성함 `(temp)`, 계좌 "수정예정", 안내문구 초안 톤, `(Written by Gemini)` 표기
 *   화환 플로팅 배너(바른손 제휴 배너)가 노출 중
-*   `upload/gallery` 는 실제로 **고유 사진 10장**을 두 벌로 갖고 있습니다.
-    `photo_1~18` = 1200x900 고화질, `photo_19~36` = 400x300 축소본(같은 사진).
-    현재 갤러리는 `photo_1~18` 만 참조하므로 `photo_19~36` 은 삭제해도 됩니다.
 
 ## 3-2. 다크모드 — 대응하지 않기로 결정 (2026-09-12)
 
@@ -151,11 +148,23 @@ python3 tools/sync-gallery-sizes.py             # 실제 반영
 `index.html` 의 `maps.js?ncpKeyId=` 뒤를 교체하면 됩니다.
 
 ### 사진 교체하기
-`upload/` 폴더 내의 이미지 파일들을 동일한 이름으로 덮어쓰기하면 HTML 수정 없이 사진이 바뀝니다.
-*   메인 배경: `upload/images/main_bg.jpg`
-*   메인 인물: `upload/images/main_photo_real.jpg`
-*   카톡 공유: `upload/images/kakao_share.jpg`
-*   갤러리: `upload/gallery/photo_1.jpg` ~ `photo_36.jpg`
+지금 사진은 **스튜디오 촬영 원본을 흐리게 구운 임시본**입니다 (2026-10-15).
+공개 저장소라 원본은 커밋하지 않고, `tools/blur-preview-photos.sh 원본들...` 로 블러를 이미지에 구워 넣었습니다.
+*   메인 인물: `upload/images/main_preview.jpg` (블러를 갤러리보다 약하게)
+*   카톡 공유: `upload/images/kakao_share_preview.jpg` (800x600, `og:image`)
+*   갤러리: `upload/gallery/preview_grid.jpg` — 9장을 3x3 **한 장**으로 붙인 것.
+*   '사진 준비 중' 안내(`.photo-pending`)는 메인 사진 윗부분과 갤러리 한가운데 두 곳에 같은 문구로 얹었습니다.
+    매스너리 갤러리 마크업은 빼 두었고, 확대 화면(`.pswp`)과 매스너리 CSS/JS 는 그대로 남아 있습니다.
+
+보정본이 오면 매스너리 갤러리로 되돌립니다:
+1.  사진은 **새 파일명**으로 넣습니다. 같은 이름으로 덮어쓰면 카톡 인앱 브라우저와 카카오 공유 썸네일이 옛 사진을 오래 붙잡습니다.
+2.  `index.html` 의 `.photo-grid` 블록을 매스너리 목록(`.skin_gallery` 의 figure 들 + `.gallery__more` 버튼)으로 바꿉니다.
+    마크업 원형은 커밋 `22c27ab` 의 `index.html` 에 있습니다 (`git show 22c27ab:index.html`).
+3.  메인의 `.photo-pending--hero`, `css/aesthetic.css` 의 '11. 임시' 블록, `upload/gallery/preview_grid.jpg` 를 지웁니다.
+4.  메인 `src`, `og:image` 를 새 파일명으로 바꾸고 `upload/images/*_preview.jpg` 를 지웁니다.
+5.  `python3 tools/sync-gallery-sizes.py` 로 `data-size` 를 맞추고 `npm test`
+    (`tests/invitation.test.mjs` 가 빠진 파일·안 쓰는 갤러리 사진·크기 불일치를 잡습니다).
+6.  카카오 공유 디버거에서 `https://tw-sj-wedding.github.io/` 캐시를 초기화합니다.
 
 ---
 **제작 정보**: Designed & Crafted by 김태웅

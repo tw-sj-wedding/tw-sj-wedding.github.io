@@ -1030,3 +1030,58 @@ div.toast p {
     border-right: 1.5px solid var(--accent);
     transform: rotate(45deg);
 }
+
+/* ============================================================
+   11. 임시 — 사진 준비 중 안내
+   지금 사진은 스튜디오 촬영 원본을 흐리게 구운 것입니다(tools/blur-preview-photos.sh).
+   보정본으로 바꿀 때 이 블록과 index.html 의 .photo-pending 두 곳을 함께 지웁니다.
+   ============================================================ */
+.photo-pending--hero {
+    position: absolute;
+    left: 50%;
+    top: 15%;               /* 얼굴을 가리지 않게 사진 윗부분(배경)에 둡니다 */
+    z-index: 1;
+    width: max-content;
+    max-width: 84%;
+    padding: 14px 22px 13px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, .8);
+    box-shadow: 0 6px 24px rgba(60, 40, 32, .12);
+    text-align: center;
+    transform: translate(-50%, -50%);
+    animation: pendingIn 1.2s var(--ease) .6s both;
+}
+@keyframes pendingIn {
+    from { opacity: 0; transform: translate(-50%, -40%); }
+    to   { opacity: 1; transform: translate(-50%, -50%); }
+}
+.photo-pending__en {
+    display: block;
+    margin-bottom: 6px;
+    font-family: var(--font-en);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: .3em;
+    text-indent: .3em;
+    text-transform: uppercase;
+    color: var(--accent);
+}
+.photo-pending__kr {
+    display: block;
+    font-size: 13px;
+    letter-spacing: .02em;
+    color: var(--ink-body);
+    word-break: keep-all;
+}
+.photo-pending--gallery {
+    margin: -10px var(--gut) 26px;
+    font-size: 13px;
+    line-height: 1.8;
+    letter-spacing: .02em;
+    color: var(--ink-soft);
+    text-align: center;
+    word-break: keep-all;
+}
+@media (prefers-reduced-motion: reduce) {
+    .photo-pending--hero { animation: none; }
+}

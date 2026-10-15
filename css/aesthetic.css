@@ -1055,11 +1055,18 @@ div.toast p {
     z-index: 2;
     width: max-content;
     max-width: 86%;
-    padding: 16px 22px 15px;
-    border-radius: 14px;
+    padding: 11px 22px 10px;
+    border-radius: 999px;
     background: rgba(255, 255, 255, .86);
     box-shadow: 0 6px 24px rgba(60, 40, 32, .14);
-    text-align: center;
+    font-family: var(--font-en);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: .3em;
+    text-indent: .3em;           /* 자간 때문에 오른쪽으로 밀리는 것 보정 */
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--accent);
     transform: translate(-50%, -50%);
 }
 .photo-pending--hero {
@@ -1073,23 +1080,4 @@ div.toast p {
 }
 @media (prefers-reduced-motion: reduce) {
     .photo-pending--hero { animation: none; }
-}
-.photo-pending__en {
-    display: block;
-    margin-bottom: 8px;
-    font-family: var(--font-en);
-    font-size: 12px;
-    font-weight: 500;
-    letter-spacing: .3em;
-    text-indent: .3em;
-    text-transform: uppercase;
-    color: var(--accent);
-}
-.photo-pending__kr {
-    display: block;
-    font-size: 13px;
-    line-height: 1.75;
-    letter-spacing: .02em;
-    color: var(--ink-body);
-    word-break: keep-all;
 }

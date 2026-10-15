@@ -13,7 +13,7 @@
 #   - 넘긴 순서대로 3열 격자 한 장 upload/gallery/preview_grid.jpg 를 만듭니다
 #     (칸 400x533, 간격 8px 흰색). 장수를 바꿨으면 index.html 의 width/height 를 맞춥니다.
 #   - 첫 장으로 메인 사진 upload/images/main_preview.jpg (가로 800)
-#     과 카톡 공유 썸네일 upload/images/kakao_share_pending.jpg (800x600) 도 만듭니다.
+#     과 카톡 공유 썸네일 upload/images/kakao_share_soon.jpg (800x600) 도 만듭니다.
 #   - 공유 썸네일의 '사진 준비 중' 배지는 tools/share-badge.html 을 Chrome 헤드리스로 찍어
 #     굽습니다(이 ffmpeg 에는 글자 필터가 없음). 글꼴을 Google Fonts 에서 받으므로 인터넷이 필요합니다.
 #     Chrome 위치가 다르면 CHROME=/경로 로 넘깁니다.
@@ -77,6 +77,6 @@ blur "$TMP/01.png" "$TMP/share.png" "scale=800:-2:flags=area,crop=800:600:0:ih*0
     "file://$ROOT/tools/share-badge.html?img=file://$TMP/share.png" >/dev/null 2>&1 || true
 [ -s "$TMP/share_badge.png" ] || { echo "Chrome 헤드리스 캡처에 실패했습니다 (CHROME=$CHROME)" >&2; exit 1; }
 ffmpeg -loglevel error -y -i "$TMP/share_badge.png" -map_metadata -1 -q:v 3 \
-    "$ROOT/upload/images/kakao_share_pending.jpg"
+    "$ROOT/upload/images/kakao_share_soon.jpg"
 
 echo "격자(${i}장) + 메인 + 공유 썸네일을 만들었습니다."

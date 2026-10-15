@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 스튜디오 원본 → 흐리게 구운 미리보기 사진을 만듭니다. (macOS: sips + ffmpeg)
+# 스튜디오 원본 → 흐리게 구운 미리보기 사진을 만듭니다. (macOS: sips + ffmpeg + Chrome)
 #
 # 왜 굽는가
 # ---------
@@ -13,7 +13,10 @@
 #   - 넘긴 순서대로 3열 격자 한 장 upload/gallery/preview_grid.jpg 를 만듭니다
 #     (칸 400x533, 간격 8px 흰색). 장수를 바꿨으면 index.html 의 width/height 를 맞춥니다.
 #   - 첫 장으로 메인 사진 upload/images/main_preview.jpg (가로 800)
-#     과 카톡 공유 썸네일 upload/images/kakao_share_preview.jpg (800x600) 도 만듭니다.
+#     과 카톡 공유 썸네일 upload/images/kakao_share_pending.jpg (800x600) 도 만듭니다.
+#   - 공유 썸네일의 '사진 준비 중' 배지는 tools/share-badge.html 을 Chrome 헤드리스로 찍어
+#     굽습니다(이 ffmpeg 에는 글자 필터가 없음). 글꼴을 Google Fonts 에서 받으므로 인터넷이 필요합니다.
+#     Chrome 위치가 다르면 CHROME=/경로 로 넘깁니다.
 #
 # 보정본이 오면 이 스크립트는 더 쓰지 않습니다. 선명한 사진은 새 파일명으로 넣으세요
 # (카톡 인앱 브라우저가 같은 주소의 옛 사진을 오래 붙잡고 있습니다).
@@ -64,8 +67,16 @@ ffmpeg -loglevel error -y "${inputs[@]}" \
 
 # 메인: 가로 800, 세로는 원본 비율
 blur "$TMP/01.png" "$ROOT/upload/images/main_preview.jpg" "scale=800:-2:flags=area" 3.5
-# 공유 썸네일: 800x600, 얼굴이 들어가도록 위쪽 13% 지점부터 자릅니다
-blur "$TMP/01.png" "$ROOT/upload/images/kakao_share_preview.jpg" \
-    "scale=800:-2:flags=area,crop=800:600:0:ih*0.13" 13
+# 공유 썸네일: 800x600, 얼굴이 들어가도록 위쪽 13% 지점부터 자르고 배지를 얹습니다
+CHROME="${CHROME:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}"
+blur "$TMP/01.png" "$TMP/share.png" "scale=800:-2:flags=area,crop=800:600:0:ih*0.13" 13
+"$CHROME" --headless=new --disable-gpu --hide-scrollbars --no-first-run \
+    --user-data-dir="$TMP/chrome" --force-device-scale-factor=1 --window-size=800,600 \
+    --virtual-time-budget=8000 --allow-file-access-from-files \
+    --screenshot="$TMP/share_badge.png" \
+    "file://$ROOT/tools/share-badge.html?img=file://$TMP/share.png" >/dev/null 2>&1 || true
+[ -s "$TMP/share_badge.png" ] || { echo "Chrome 헤드리스 캡처에 실패했습니다 (CHROME=$CHROME)" >&2; exit 1; }
+ffmpeg -loglevel error -y -i "$TMP/share_badge.png" -map_metadata -1 -q:v 3 \
+    "$ROOT/upload/images/kakao_share_pending.jpg"
 
 echo "격자(${i}장) + 메인 + 공유 썸네일을 만들었습니다."

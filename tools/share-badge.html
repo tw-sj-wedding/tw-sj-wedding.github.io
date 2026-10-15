@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<!-- 카톡 공유 썸네일(800x600)에 '사진 준비 중' 배지를 얹는 틀.
+     tools/blur-preview-photos.sh 가 Chrome 헤드리스로 이 페이지를 찍어 이미지로 굽습니다.
+     ?img= 로 배경 사진 경로(이 파일 기준 상대 경로)를 받습니다.
+     색·글꼴은 css/aesthetic.css 의 .photo-pending 과 맞춥니다. 썸네일은 카톡 대화창에서
+     작게 보이므로 글자는 페이지보다 크게 씁니다. -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Cormorant+Garamond:wght@500&display=block" rel="stylesheet">
+<style>
+    html, body { margin: 0; width: 800px; height: 600px; overflow: hidden; }
+    body {
+        position: relative;
+        background: #fff center / cover no-repeat;
+    }
+    .badge {
+        position: absolute;
+        left: 50%;
+        bottom: 58px;               /* 얼굴을 피해 아래쪽(드레스·잔디) 위에 */
+        transform: translateX(-50%);
+        width: max-content;
+        padding: 24px 46px 26px;
+        border-radius: 22px;
+        background: rgba(255, 255, 255, .88);
+        box-shadow: 0 10px 36px rgba(60, 40, 32, .18);
+        text-align: center;
+    }
+    .en {
+        display: block;
+        margin-bottom: 12px;
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 24px;
+        font-weight: 500;
+        letter-spacing: .3em;
+        text-indent: .3em;
+        text-transform: uppercase;
+        color: #c2836f;
+    }
+    .kr {
+        display: block;
+        font-family: 'Gowun Batang', serif;
+        font-size: 34px;
+        letter-spacing: .02em;
+        color: #554d48;
+    }
+</style>
+</head>
+<body>
+    <p class="badge">
+        <span class="en">Photos coming soon</span>
+        <span class="kr">수정본 받으면 선명하게 바꿔둘게요.</span>
+    </p>
+    <script>
+        var img = new URLSearchParams(location.search).get('img');
+        if (img) document.body.style.backgroundImage = 'url("' + img + '")';
+    </script>
+</body>
+</html>

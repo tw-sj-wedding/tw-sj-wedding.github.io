@@ -10,11 +10,10 @@
 # ------
 #   tools/blur-preview-photos.sh 원본1.jpeg 원본2.jpeg ...
 #
-#   - 넘긴 순서대로 upload/gallery/preview_01.jpg, preview_02.jpg ... (600x800)
+#   - 넘긴 순서대로 3열 격자 한 장 upload/gallery/preview_grid.jpg 를 만듭니다
+#     (칸 400x533, 간격 8px 흰색). 장수를 바꿨으면 index.html 의 width/height 를 맞춥니다.
 #   - 첫 장으로 메인 사진 upload/images/main_preview.jpg (가로 800)
 #     과 카톡 공유 썸네일 upload/images/kakao_share_preview.jpg (800x600) 도 만듭니다.
-#   - 만든 뒤 index.html 의 갤러리 figure 를 장수에 맞추고
-#     python3 tools/sync-gallery-sizes.py 로 data-size 를 맞춥니다.
 #
 # 보정본이 오면 이 스크립트는 더 쓰지 않습니다. 선명한 사진은 새 파일명으로 넣으세요
 # (카톡 인앱 브라우저가 같은 주소의 옛 사진을 오래 붙잡고 있습니다).
@@ -30,10 +29,11 @@ SRGB="/System/Library/ColorSync/Profiles/sRGB Profile.icc"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
-# 블러 세기 = 결과 가로폭 / 60 (600px → sigma 10). 누군지는 알아보되 피부·디테일은 뭉개집니다.
-blur() { # 입력 출력 블러-앞단-필터 sigma
+# 블러 세기 = 가로폭 / 60 (600px → sigma 10). 누군지는 알아보되 피부·디테일은 뭉개집니다.
+# 메인만 조금 약하게(가로폭 / 90) — 첫 화면이라 분위기가 보이는 편이 낫습니다.
+blur() { # 입력 출력 블러-앞단-필터 sigma [블러-뒷단-필터]
     ffmpeg -loglevel error -y -i "$1" \
-        -vf "$3,gblur=sigma=$4:steps=3" \
+        -vf "$3,gblur=sigma=$4:steps=3${5:+,$5}" \
         -map_metadata -1 -q:v 3 "$2"
 }
 
@@ -43,21 +43,29 @@ to_srgb() {
     sips -s format png --matchTo "$SRGB" "$1" --out "$2" >/dev/null
 }
 
-rm -f "$ROOT"/upload/gallery/preview_*.jpg
-
-i=1
+# 격자 칸: 600x800 에서 블러(sigma 10)를 건 뒤 400x533 으로 줄입니다 → 블러 비율은 그대로
+TILE_W=400 TILE_H=533 GAP=8 COLS=3
+mkdir -p "$ROOT/upload/gallery"
+inputs=() layout=()
+i=0
 for src in "$@"; do
-    n=$(printf '%02d' "$i")
+    n=$(printf '%02d' $((i + 1)))
     to_srgb "$src" "$TMP/$n.png"
-    blur "$TMP/$n.png" "$ROOT/upload/gallery/preview_$n.jpg" \
-        "scale=600:800:force_original_aspect_ratio=increase:flags=area,crop=600:800" 10
+    blur "$TMP/$n.png" "$TMP/tile_$n.png" \
+        "scale=600:800:force_original_aspect_ratio=increase:flags=area,crop=600:800" 10 \
+        "scale=$TILE_W:$TILE_H:flags=area"
+    inputs+=(-i "$TMP/tile_$n.png")
+    layout+=("$(( i % COLS * (TILE_W + GAP) ))_$(( i / COLS * (TILE_H + GAP) ))")
     i=$((i + 1))
 done
+ffmpeg -loglevel error -y "${inputs[@]}" \
+    -filter_complex "xstack=inputs=$i:layout=$(IFS='|'; echo "${layout[*]}"):fill=white" \
+    -map_metadata -1 -q:v 3 "$ROOT/upload/gallery/preview_grid.jpg"
 
 # 메인: 가로 800, 세로는 원본 비율
-blur "$TMP/01.png" "$ROOT/upload/images/main_preview.jpg" "scale=800:-2:flags=area" 13
+blur "$TMP/01.png" "$ROOT/upload/images/main_preview.jpg" "scale=800:-2:flags=area" 9
 # 공유 썸네일: 800x600, 얼굴이 들어가도록 위쪽 13% 지점부터 자릅니다
 blur "$TMP/01.png" "$ROOT/upload/images/kakao_share_preview.jpg" \
     "scale=800:-2:flags=area,crop=800:600:0:ih*0.13" 13
 
-echo "갤러리 $((i - 1))장 + 메인 + 공유 썸네일을 만들었습니다."
+echo "격자(${i}장) + 메인 + 공유 썸네일을 만들었습니다."

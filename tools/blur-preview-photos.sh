@@ -30,7 +30,7 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
 # 블러 세기 = 가로폭 / 60 (600px → sigma 10). 누군지는 알아보되 피부·디테일은 뭉개집니다.
-# 메인만 조금 약하게(가로폭 / 90) — 첫 화면이라 분위기가 보이는 편이 낫습니다.
+# 메인은 훨씬 약하게(800px → sigma 3.5) — 첫 화면이라 얼굴이 거의 보이고 디테일만 부드럽게.
 blur() { # 입력 출력 블러-앞단-필터 sigma [블러-뒷단-필터]
     ffmpeg -loglevel error -y -i "$1" \
         -vf "$3,gblur=sigma=$4:steps=3${5:+,$5}" \
@@ -63,7 +63,7 @@ ffmpeg -loglevel error -y "${inputs[@]}" \
     -map_metadata -1 -q:v 3 "$ROOT/upload/gallery/preview_grid.jpg"
 
 # 메인: 가로 800, 세로는 원본 비율
-blur "$TMP/01.png" "$ROOT/upload/images/main_preview.jpg" "scale=800:-2:flags=area" 9
+blur "$TMP/01.png" "$ROOT/upload/images/main_preview.jpg" "scale=800:-2:flags=area" 3.5
 # 공유 썸네일: 800x600, 얼굴이 들어가도록 위쪽 13% 지점부터 자릅니다
 blur "$TMP/01.png" "$ROOT/upload/images/kakao_share_preview.jpg" \
     "scale=800:-2:flags=area,crop=800:600:0:ih*0.13" 13

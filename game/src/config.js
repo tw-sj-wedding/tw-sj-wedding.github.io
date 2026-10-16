@@ -46,6 +46,15 @@ export const OBSTACLES = {
 // 줄 높이는 점프한 캐릭터 머리 끝(정점 56 + 그림 키 55 ≈ 111)보다 한참 위. 기둥은 월드 거리마다 하나
 export const LIFT = { cableH: 150, towerEvery: 960 };
 
+// 속도감 연출 (그림 전용, #62). 세기는 속도가 from → full 로 갈 때 0 → 1.
+// 하객 대부분은 2분 안에 끝나므로 1분(420)에 시작해 1분 30초(510) 무렵 확 도드라지고 1분 47초(560)에 최대가 되게 맞췄다.
+// spray: 땅에 닿아 있을 때 보드 뒤로 튀는 눈. 세기 0 에서도 base 비율만큼은 나온다 (타는 느낌).
+// lines: 경사와 나란히 흐르는 바람 줄기. from 아래에서는 없다. 지면보다 rel 배 빠르게 흐른다
+export const EFFECTS = {
+  spray: { count: 56, base: 0.25, lifeSec: 0.45, from: 240, full: 560 },
+  lines: { count: 26, from: 420, full: 560, minLen: 14, maxLen: 76, rel: [1.3, 2.1], top: 125, bottom: 6 },
+};
+
 // 애니메이션 (렌더 전용)
 export const ANIM = { frameTicks: 8, overDelayMs: 700, countdownMs: 700 };
 

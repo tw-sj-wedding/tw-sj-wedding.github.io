@@ -6,6 +6,7 @@ import { VIEW, ANIM, TICK_HZ } from '../config.js';
 import { createBackground } from './background.js';
 import { drawObstacle } from './obstacles.js';
 import { drawCharacter } from './sprites.js';
+import { drawSpeedLines, drawSpray } from './effects.js';
 
 export function createRenderer(canvas, container) {
   const ctx = canvas.getContext('2d', { alpha: false });
@@ -31,7 +32,7 @@ export function createRenderer(canvas, container) {
 
   function setAtlas(a) { atlas = a; }
 
-  // view = { distance, playerY, pose, animTick, obstacles, character, timeSec }
+  // view = { distance, playerY, pose, animTick, obstacles, character, timeSec, speed }
   function draw(view) {
     ctx.setTransform(k, 0, 0, k, 0, 0);
     ctx.imageSmoothingEnabled = false;
@@ -41,7 +42,10 @@ export function createRenderer(canvas, container) {
     ctx.translate(VIEW.PLAYER_X, groundY);
     ctx.rotate((VIEW.SLOPE_DEG * Math.PI) / 180);
     ctx.translate(-VIEW.PLAYER_X, -groundY);
-    bg.drawLand(ctx, view.distance, view.timeSec ?? view.animTick / TICK_HZ);
+    const timeSec = view.timeSec ?? view.animTick / TICK_HZ;
+    const speed = view.speed ?? 0;
+    bg.drawLand(ctx, view.distance, timeSec);
+    drawSpeedLines(ctx, groundY, speed, view.distance);   // 장애물 뒤 — 장애물을 가리지 않게
 
     for (const o of view.obstacles) {
       const x = Math.round(o.x - view.distance);
@@ -56,6 +60,7 @@ export function createRenderer(canvas, container) {
       ctx.fillStyle = 'rgba(80, 100, 120, 0.18)';
       ctx.fillRect(VIEW.PLAYER_X - w / 2, groundY - 2, w, 2);
     }
+    if (view.playerY <= 2 && view.pose !== 'crash') drawSpray(ctx, groundY, speed, timeSec);
     const animFrame = Math.floor(view.animTick / ANIM.frameTicks);
     drawCharacter(ctx, atlas, view.character, view.pose, animFrame, VIEW.PLAYER_X - 32, y);
   }

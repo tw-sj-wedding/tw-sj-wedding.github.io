@@ -166,7 +166,7 @@ function view(alpha) {
   if (!sim) {
     return {
       distance: idleDistance, playerY: 0, pose: 'run', animTick: Math.floor(clock * TICK_HZ),
-      obstacles: [], character, timeSec: clock,
+      obstacles: [], character, timeSec: clock, speed: IDLE_SPEED,
     };
   }
   return {
@@ -177,6 +177,7 @@ function view(alpha) {
     obstacles: sim.obstacles,
     character,
     timeSec: clock,
+    speed: sim.speed,
   };
 }
 

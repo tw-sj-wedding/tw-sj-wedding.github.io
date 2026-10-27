@@ -98,3 +98,28 @@ test('신랑 측 혼주 이름·연락처가 채워져 있다', () => {
   }
   assert.ok(!/href="(tel|sms):"/.test(block), '빈 연락처 버튼이 남음');
 });
+
+test('신부 측 혼주 이름·연락처가 채워져 있다', () => {
+  const block = html.slice(html.indexOf('<h3>신부 측 혼주</h3>'), html.indexOf('</ul>', html.indexOf('<h3>신부 측 혼주</h3>')));
+  assert.ok(!block.includes('(temp)'), '임시 이름이 남음');
+  for (const [name, tel] of [['박일두', '01088660598'], ['윤문희', '01088841258']]) {
+    assert.ok(block.includes(name), `${name} 없음`);
+    assert.ok(block.includes(`href="tel:${tel}"`) && block.includes(`href="sms:${tel}"`), `${name} 연락처 없음`);
+  }
+  assert.ok(!/href="(tel|sms):"/.test(block), '빈 연락처 버튼이 남음');
+});
+
+test('혼주 계좌는 보이는 번호와 복사되는 번호가 같다', () => {
+  const accounts = Object.fromEntries([...html.matchAll(
+    /<span>([^<]+)<\/span>&nbsp;계좌\s*<\/dt>\s*<dd>\s*<span>\s*([^<]*?)\s*<\/span>&nbsp;&nbsp;\(예금주 : <span>([^<]+)<\/span>\)\s*<\/dd>\s*<dd>\s*<span>([^<]+)<\/span>[\s\S]*?data-account="([^"]+)"/g,
+  )].map(([, who, bank, holder, shown, copied]) => [who, { bank, holder, shown, copied }]));
+  // 신부 어머니 계좌는 아직 따로 받지 않아 아버지 계좌로 둔다.
+  for (const [who, bank, number, holder] of [
+    ['신랑측 아버지', '신한은행', '517-04-340988', '김세광'],
+    ['신랑측 어머니', '신한은행', '517-04-311643', '민미경'],
+    ['신부측 아버지', '토스뱅크', '1000-0799-0145', '박일두'],
+    ['신부측 어머니', '토스뱅크', '1000-0799-0145', '박일두'],
+  ]) {
+    assert.deepEqual(accounts[who], { bank, holder, shown: number, copied: number }, who);
+  }
+});

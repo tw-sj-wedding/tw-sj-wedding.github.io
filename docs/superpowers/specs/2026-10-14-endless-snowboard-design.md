@@ -195,7 +195,7 @@ CREATE TABLE used_nonces (nonce TEXT PRIMARY KEY, used_at INTEGER NOT NULL);
 - 2~10자, 한글·영문·숫자, NFC 정규화, 서버측 욕설 필터, 예약어 차단(신랑·신부·태웅·수진·관리자·admin 등).
 - 사용자 문자열 출력은 `textContent`만. SQL은 prepared statement만.
 - 수집: 닉네임, 익명 playerId, 점수, 캐릭터. 실명·연락처 요구 금지.
-- 등록 화면에 "기록은 결혼식 1개월 후(2027-03-01) 삭제됩니다" 안내.
+- 기록은 지우지 않는다 — 등록 화면에 삭제 안내를 두지 않는다 (DECISIONS #64).
 
 ## 10. 코드 구조
 
@@ -277,4 +277,4 @@ getScore(state)              // → int
 |---|---|---|
 | 장애물 그림 | 임시 도형으로 진행, 사용자가 Gemini로 생성해 전달 | 1부 중 아무 때나 |
 | Cloudflare 계정 | 사용자 생성 | 2부 착수 시 |
-| 기록 삭제일 | 2027-03-01 | 2부 착수 전 |
+| 기록 삭제일 | 없음 — 지우지 않는다 (DECISIONS #64) | 결정됨 |

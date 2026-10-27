@@ -51,10 +51,8 @@ cd worker
 # 순위 보기
 npx wrangler d1 execute tw-sj-wedding-leaderboard --remote --command \
   "SELECT nickname, score, character, datetime(updated_at/1000,'unixepoch','+9 hours') AS kst FROM scores ORDER BY score DESC LIMIT 30"
-# 수상한 기록 지우기 (닉네임으로)
+# 수상한 기록 지우기 (닉네임으로 — 같은 이름이 여러 줄이면 전부 지워진다. 한 줄만 지울 땐 player_id 로)
 npx wrangler d1 execute tw-sj-wedding-leaderboard --remote --command "DELETE FROM scores WHERE nickname = '닉네임'"
-# 결혼식 1개월 후(2027-03-01) 전체 삭제 — 등록 화면에 안내한 약속
-npx wrangler d1 execute tw-sj-wedding-leaderboard --remote --command "DELETE FROM scores; DELETE FROM used_nonces; DELETE FROM submissions"
 ```
 
 관리용 공개 API 는 만들지 않는다. 수정·삭제는 위 명령으로만 한다.

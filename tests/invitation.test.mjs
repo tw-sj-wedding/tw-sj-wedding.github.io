@@ -109,7 +109,7 @@ test('신부 측 혼주 이름·연락처가 채워져 있다', () => {
   assert.ok(!/href="(tel|sms):"/.test(block), '빈 연락처 버튼이 남음');
 });
 
-test('혼주 계좌는 보이는 번호와 복사되는 번호가 같다', () => {
+test('채운 계좌는 보이는 번호와 복사되는 번호가 같다', () => {
   const accounts = Object.fromEntries([...html.matchAll(
     /<span>([^<]+)<\/span>&nbsp;계좌\s*<\/dt>\s*<dd>\s*<span>\s*([^<]*?)\s*<\/span>&nbsp;&nbsp;\(예금주 : <span>([^<]+)<\/span>\)\s*<\/dd>\s*<dd>\s*<span>([^<]+)<\/span>[\s\S]*?data-account="([^"]+)"/g,
   )].map(([, who, bank, holder, shown, copied]) => [who, { bank, holder, shown, copied }]));
@@ -118,6 +118,7 @@ test('혼주 계좌는 보이는 번호와 복사되는 번호가 같다', () =>
     ['신랑측 어머니', '신한은행', '517-04-311643', '민미경'],
     ['신부측 아버지', '토스뱅크', '1000-0799-0145', '박일두'],
     ['신부측 어머니', '농협', '972-02-234261', '윤문희'],
+    ['신부', '카카오뱅크', '3333-26-8649603', '박수진'],
   ]) {
     assert.deepEqual(accounts[who], { bank, holder, shown: number, copied: number }, who);
   }

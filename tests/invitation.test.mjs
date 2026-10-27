@@ -109,11 +109,12 @@ test('신부 측 혼주 이름·연락처가 채워져 있다', () => {
   assert.ok(!/href="(tel|sms):"/.test(block), '빈 연락처 버튼이 남음');
 });
 
-test('채운 계좌는 보이는 번호와 복사되는 번호가 같다', () => {
+test('계좌 6개는 보이는 번호와 복사되는 번호가 같다', () => {
   const accounts = Object.fromEntries([...html.matchAll(
     /<span>([^<]+)<\/span>&nbsp;계좌\s*<\/dt>\s*<dd>\s*<span>\s*([^<]*?)\s*<\/span>&nbsp;&nbsp;\(예금주 : <span>([^<]+)<\/span>\)\s*<\/dd>\s*<dd>\s*<span>([^<]+)<\/span>[\s\S]*?data-account="([^"]+)"/g,
   )].map(([, who, bank, holder, shown, copied]) => [who, { bank, holder, shown, copied }]));
   for (const [who, bank, number, holder] of [
+    ['신랑', '신한은행', '110-360-743931', '김태웅'],
     ['신랑측 아버지', '신한은행', '517-04-340988', '김세광'],
     ['신랑측 어머니', '신한은행', '517-04-311643', '민미경'],
     ['신부측 아버지', '토스뱅크', '1000-0799-0145', '박일두'],
@@ -122,4 +123,10 @@ test('채운 계좌는 보이는 번호와 복사되는 번호가 같다', () =>
   ]) {
     assert.deepEqual(accounts[who], { bank, holder, shown: number, copied: number }, who);
   }
+});
+
+test('계좌 팝업에 임시값이 남아 있지 않다', () => {
+  assert.ok(!html.includes('수정예정'), '수정예정이 남음');
+  assert.ok(!html.includes('data-account="-"'), '복사 버튼이 빈 번호를 복사함');
+  assert.equal((html.match(/data-account="[\d-]+"/g) ?? []).length, 6, '계좌 복사 버튼이 6개가 아님');
 });

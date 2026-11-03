@@ -16,7 +16,7 @@ GitHub Pages 배포를 위해 루트 디렉토리를 기준으로 정돈되었�
 ├── dist/                 # 갤러리 라이브러리 (Photoswipe 등) 리소스
 ├── upload/               # 개인화 리소스 폴더
 │   ├── images/           # 메인 배경, 인물 사진, 카톡 공유 이미지
-│   ├── gallery/          # 갤러리용 사진들 (지금은 preview_grid.jpg 한 장, 스튜디오 원본 블러본)
+│   ├── gallery/          # 갤러리 사진 (r2_NN.jpg 확대용 + r2_NN_s.jpg 타일용, 스튜디오 2차 수정본)
 │   └── template/         # 템플릿 전용 디자인 리소스
 │       └── MC3220/       # 현재 사용 중인 MC3220 템플릿용 CSS/JS
 └── docs/                 # 프로젝트 문서 및 가이드
@@ -148,23 +148,26 @@ python3 tools/sync-gallery-sizes.py             # 실제 반영
 `index.html` 의 `maps.js?ncpKeyId=` 뒤를 교체하면 됩니다.
 
 ### 사진 교체하기
-지금 사진은 **스튜디오 촬영 원본을 흐리게 구운 임시본**입니다 (2026-10-15).
-공개 저장소라 원본은 커밋하지 않고, `tools/blur-preview-photos.sh 원본들...` 로 블러를 이미지에 구워 넣었습니다.
-*   메인 인물: `upload/images/main_preview.jpg` (블러를 갤러리보다 약하게)
-*   카톡 공유: `upload/images/kakao_share_soon.jpg` (800x600, `og:image`) — 'PHOTOS COMING SOON' 배지까지 이미지에 구워 넣음 (`tools/share-badge.html`)
-*   갤러리: `upload/gallery/preview_grid.jpg` — 9장을 3x3 **한 장**으로 붙인 것.
-*   'PHOTOS COMING SOON' 안내(`.photo-pending`, 한글 문구 없음)는 메인 사진 윗부분과 갤러리 한가운데 두 곳에 얹었습니다.
-    매스너리 갤러리 마크업은 빼 두었고, 확대 화면(`.pswp`)과 매스너리 CSS/JS 는 그대로 남아 있습니다.
+지금 사진은 **스튜디오 2차 수정본(보정본) 31장**입니다 (2026-11-03).
+원본(장당 20~100MB)은 커밋하지 않고 `tools/make-web-photos.sh 원본폴더` 로 줄인 사본만 올립니다
+(메타데이터 제거, 파일명 접두어 `r2` = 2차 수정본).
+*   메인 인물: `upload/images/main_r2.jpg` — 1200x1600(3:4)로 자른 것
+*   카톡 공유: `upload/images/kakao_share_r2.jpg` (800x600, `og:image`) — 같은 사진의 상반신
+*   갤러리: `upload/gallery/r2_NN.jpg`(확대 화면, 긴 변 1600) + `r2_NN_s.jpg`(타일 배경, 가로 640).
+    매스너리 2열, 처음 8장 + '사진 더보기'. 어떤 사진을 몇 번째에 둘지, 메인·공유 사진을 어디서 자를지는
+    전부 스크립트 맨 위의 목록이 정합니다.
 
-보정본이 오면 매스너리 갤러리로 되돌립니다:
-1.  사진은 **새 파일명**으로 넣습니다. 같은 이름으로 덮어쓰면 카톡 인앱 브라우저와 카카오 공유 썸네일이 옛 사진을 오래 붙잡습니다.
-2.  `index.html` 의 `.photo-grid` 블록을 매스너리 목록(`.skin_gallery` 의 figure 들 + `.gallery__more` 버튼)으로 바꿉니다.
-    마크업 원형은 커밋 `22c27ab` 의 `index.html` 에 있습니다 (`git show 22c27ab:index.html`).
-3.  메인의 `.photo-pending--hero`, `css/aesthetic.css` 의 '11. 임시' 블록, `upload/gallery/preview_grid.jpg` 를 지웁니다.
-4.  메인 `src`, `og:image` 를 새 파일명으로 바꾸고 `upload/images/main_preview.jpg`, `kakao_share_soon.jpg` 를 지웁니다.
-5.  `python3 tools/sync-gallery-sizes.py` 로 `data-size` 를 맞추고 `npm test`
+사진이 다시 오면(3차 수정본 등):
+1.  `tools/make-web-photos.sh` 의 `PREFIX` 를 `r3` 처럼 바꿔 **새 파일명**으로 만듭니다.
+    같은 이름으로 덮어쓰면 카톡 인앱 브라우저와 카카오 공유 썸네일이 옛 사진을 오래 붙잡습니다.
+    장수·순서가 바뀌면 `GALLERY` 목록을, 메인·공유 사진은 `HERO`·`SHARE`(와 자르는 영역)를 고칩니다.
+2.  `index.html` 의 갤러리 `<a>`(href·배경), 메인 `src`, `og:image` 를 새 파일명으로 바꾸고 옛 `r2_*` 파일을 지웁니다.
+3.  `python3 tools/sync-gallery-sizes.py` 로 `data-size` 를 맞추고 `npm test`
     (`tests/invitation.test.mjs` 가 빠진 파일·안 쓰는 갤러리 사진·크기 불일치를 잡습니다).
-6.  카카오 공유 디버거에서 `https://tw-sj-wedding.github.io/` 캐시를 초기화합니다.
+4.  카카오 공유 디버거에서 `https://tw-sj-wedding.github.io/` 캐시를 초기화합니다.
+
+보정 전 원본을 흐리게 가려 두었던 임시 시절(3x3 한 장 + 'Photos coming soon')의 도구는
+커밋 `61bfdec` 까지 남아 있습니다 (`tools/blur-preview-photos.sh`, `tools/share-badge.html`).
 
 ---
 **제작 정보**: Designed & Crafted by 김태웅
